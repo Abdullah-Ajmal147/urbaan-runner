@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="5" result="Passed" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-05 20:31:54Z" end-time="2026-10-05 20:33:01Z" duration="67.6401731">
+  <test-suite type="TestSuite" id="1013" name="Urban Runner" fullname="Urban Runner" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-10-05 20:31:54Z" end-time="2026-10-05 20:33:01Z" duration="67.640173" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1007" name="Tests.PlayMode.dll" fullname="/home/m-abdullah/Desktop/Personal Project/game-factory/unity/Library/ScriptAssemblies/Tests.PlayMode.dll" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-10-05 20:31:54Z" end-time="2026-10-05 20:33:01Z" duration="67.618353" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="223583" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1008" name="Tests" fullname="Tests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-10-05 20:31:54Z" end-time="2026-10-05 20:33:01Z" duration="67.616978" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1009" name="PlayMode" fullname="Tests.PlayMode" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-10-05 20:31:54Z" end-time="2026-10-05 20:33:01Z" duration="67.616288" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestFixture" id="1001" name="RunSceneTests" fullname="Tests.PlayMode.RunSceneTests" classname="Tests.PlayMode.RunSceneTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-10-05 20:31:54Z" end-time="2026-10-05 20:33:01Z" duration="67.613176" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1003" name="Autoplay_Runs3Minutes_WithoutErrors" fullname="Tests.PlayMode.RunSceneTests.Autoplay_Runs3Minutes_WithoutErrors" methodname="Autoplay_Runs3Minutes_WithoutErrors" classname="Tests.PlayMode.RunSceneTests" runstate="Runnable" seed="334648123" result="Passed" start-time="2026-10-05 20:31:54Z" end-time="2026-10-05 20:32:40Z" duration="46.314068" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[UR_BRIDGE transport=StandaloneHostTransport
+UR_BRIDGE -> {"v":1,"type":"unity.ready","payload":{"bridgeVersion":1,"buildVersion":"0.1.0"}}
+UR_BRIDGE <- {"v":1,"type":"session.start","sessionId":"auto-1","payload":{"seed":2026,"mode":"normal","character":"mira","trail":"none","upgrades":{"magnet":0,"shield":0,"double":0},"config":{"start_speed":8,"max_speed":22,"speed_ramp_per_min":3,"revives_per_run":1,"revive_enabled":true},"settings":{"music":true,"sfx":true,"haptics":true,"reduceMotion":false},"testMode":{"autoplay":true,"skill":1.0,"endAfterSeconds":180}}}
+UR_GAME session auto-1 start seed=2026 mode=normal autoplay=True
+UR_BRIDGE -> {"v":1,"type":"session.started","sessionId":"auto-1","payload":{}}
+UR_PERF window fps_avg=60.0 fps_min=49.1 frames=601 seconds=10.0 mono_mb=771.6 total_alloc_mb=141.6 gc=138
+UR_GAME floating origin -> 500
+UR_PERF window fps_avg=59.9 fps_min=22.2 frames=600 seconds=10.0 mono_mb=736.2 total_alloc_mb=141.6 gc=139
+UR_GAME floating origin -> 1000
+UR_PERF window fps_avg=60.0 fps_min=41.0 frames=600 seconds=10.0 mono_mb=718.0 total_alloc_mb=141.6 gc=140
+UR_GAME floating origin -> 1500
+UR_GAME floating origin -> 2000
+UR_PERF window fps_avg=60.0 fps_min=57.9 frames=601 seconds=10.0 mono_mb=798.6 total_alloc_mb=141.6 gc=140
+UR_GAME session auto-1 ended cause=test distance=2251 sparks=322
+UR_BRIDGE -> {"v":1,"type":"session.ended","sessionId":"auto-1","payload":{"mode":"normal","seed":2026,"distanceM":2250.6,"sparks":322,"durationS":180.03,"cause":"test","revivesUsed":0,"stats":{"jumps":21,"slides":21,"laneChanges":44,"magnet":4,"shield":1,"doubleSparks":1},"buildVersion":"0.1.0"}}
+UR_PERF session fps_avg=60.0 fps_min=22.2 frames=2587 seconds=43.1 mono_mb=706.5 total_alloc_mb=141.6 gc=141
+]]></output>
+            </test-case>
+            <test-case id="1004" name="ForcedCrash_ProducesCorrectSessionEnded" fullname="Tests.PlayMode.RunSceneTests.ForcedCrash_ProducesCorrectSessionEnded" methodname="ForcedCrash_ProducesCorrectSessionEnded" classname="Tests.PlayMode.RunSceneTests" runstate="Runnable" seed="327415698" result="Passed" start-time="2026-10-05 20:32:40Z" end-time="2026-10-05 20:32:45Z" duration="4.565326" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[UR_BRIDGE transport=StandaloneHostTransport
+UR_BRIDGE -> {"v":1,"type":"unity.ready","payload":{"bridgeVersion":1,"buildVersion":"0.1.0"}}
+UR_BRIDGE <- {"v":1,"type":"session.start","sessionId":"crash-1","payload":{"seed":2026,"mode":"normal","character":"mira","trail":"none","upgrades":{"magnet":0,"shield":0,"double":0},"config":{"start_speed":8,"max_speed":22,"speed_ramp_per_min":3,"revives_per_run":1,"revive_enabled":false},"settings":{"music":true,"sfx":true,"haptics":true,"reduceMotion":false},"testMode":{"autoplay":true,"forceCrashAtSeconds":4}}}
+UR_GAME session crash-1 start seed=2026 mode=normal autoplay=True
+UR_BRIDGE -> {"v":1,"type":"session.started","sessionId":"crash-1","payload":{}}
+UR_GAME session crash-1 ended cause=obstacle distance=33 sparks=0
+UR_BRIDGE -> {"v":1,"type":"session.ended","sessionId":"crash-1","payload":{"mode":"normal","seed":2026,"distanceM":32.5,"sparks":0,"durationS":4.02,"cause":"obstacle","revivesUsed":0,"stats":{"jumps":0,"slides":0,"laneChanges":0,"magnet":0,"shield":0,"doubleSparks":0},"buildVersion":"0.1.0"}}
+UR_PERF session fps_avg=60.0 fps_min=59.6 frames=121 seconds=2.0 mono_mb=710.9 total_alloc_mb=140.7 gc=142
+]]></output>
+            </test-case>
+            <test-case id="1006" name="PauseFromFlutter_FreezesAndResumes" fullname="Tests.PlayMode.RunSceneTests.PauseFromFlutter_FreezesAndResumes" methodname="PauseFromFlutter_FreezesAndResumes" classname="Tests.PlayMode.RunSceneTests" runstate="Runnable" seed="1406905724" result="Passed" start-time="2026-10-05 20:32:45Z" end-time="2026-10-05 20:32:47Z" duration="2.581179" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[UR_BRIDGE transport=StandaloneHostTransport
+UR_BRIDGE -> {"v":1,"type":"unity.ready","payload":{"bridgeVersion":1,"buildVersion":"0.1.0"}}
+UR_BRIDGE <- {"v":1,"type":"session.start","sessionId":"p-1","payload":{"seed":2026,"mode":"normal","character":"mira","trail":"none","upgrades":{"magnet":0,"shield":0,"double":0},"config":{"start_speed":8,"max_speed":22,"speed_ramp_per_min":3,"revives_per_run":1,"revive_enabled":true},"settings":{"music":true,"sfx":true,"haptics":true,"reduceMotion":false},"testMode":{"autoplay":true}}}
+UR_GAME session p-1 start seed=2026 mode=normal autoplay=True
+UR_BRIDGE -> {"v":1,"type":"session.started","sessionId":"p-1","payload":{}}
+UR_BRIDGE <- {"v":1,"type":"game.pause","payload":{}}
+UR_GAME paused
+UR_BRIDGE <- {"v":1,"type":"game.resume","payload":{}}
+UR_GAME resumed
+UR_GAME session p-1 ended cause=quit distance=12 sparks=0
+UR_BRIDGE -> {"v":1,"type":"session.ended","sessionId":"p-1","payload":{"mode":"normal","seed":2026,"distanceM":12.3,"sparks":0,"durationS":1.53,"cause":"quit","revivesUsed":0,"stats":{"jumps":0,"slides":0,"laneChanges":0,"magnet":0,"shield":0,"doubleSparks":0},"buildVersion":"0.1.0"}}
+UR_PERF session fps_avg=60.0 fps_min=60.0 frames=3 seconds=0.0 mono_mb=693.0 total_alloc_mb=140.7 gc=143
+]]></output>
+            </test-case>
+            <test-case id="1005" name="Revive_ResumesTheRun" fullname="Tests.PlayMode.RunSceneTests.Revive_ResumesTheRun" methodname="Revive_ResumesTheRun" classname="Tests.PlayMode.RunSceneTests" runstate="Runnable" seed="318735677" result="Passed" start-time="2026-10-05 20:32:47Z" end-time="2026-10-05 20:33:01Z" duration="13.594549" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[UR_BRIDGE transport=StandaloneHostTransport
+UR_BRIDGE -> {"v":1,"type":"unity.ready","payload":{"bridgeVersion":1,"buildVersion":"0.1.0"}}
+UR_BRIDGE <- {"v":1,"type":"session.start","sessionId":"rev-1","payload":{"seed":2026,"mode":"normal","character":"mira","trail":"none","upgrades":{"magnet":0,"shield":0,"double":0},"config":{"start_speed":8,"max_speed":22,"speed_ramp_per_min":3,"revives_per_run":1,"revive_enabled":true},"settings":{"music":true,"sfx":true,"haptics":true,"reduceMotion":false},"testMode":{"autoplay":true,"forceCrashAtSeconds":3,"endAfterSeconds":12}}}
+UR_GAME session rev-1 start seed=2026 mode=normal autoplay=True
+UR_BRIDGE -> {"v":1,"type":"session.started","sessionId":"rev-1","payload":{}}
+UR_BRIDGE -> {"v":1,"type":"analytics.event","sessionId":"rev-1","payload":{"name":"revive_offer","params":{"session_id":"rev-1"}}}
+UR_BRIDGE -> {"v":1,"type":"analytics.event","sessionId":"rev-1","payload":{"name":"revive_accept","params":{"session_id":"rev-1"}}}
+UR_BRIDGE -> {"v":1,"type":"ad.request","sessionId":"rev-1","payload":{"placement":"revive"}}
+UR_BRIDGE <- {"v":1,"type":"ad.result","sessionId":"rev-1","payload":{"placement":"revive","granted":true}}
+UR_GAME revived
+UR_PERF window fps_avg=60.0 fps_min=58.8 frames=600 seconds=10.0 mono_mb=802.1 total_alloc_mb=140.8 gc=144
+UR_GAME session rev-1 ended cause=test distance=100 sparks=21
+UR_BRIDGE -> {"v":1,"type":"session.ended","sessionId":"rev-1","payload":{"mode":"normal","seed":2026,"distanceM":99.6,"sparks":21,"durationS":12.0,"cause":"test","revivesUsed":1,"stats":{"jumps":1,"slides":0,"laneChanges":0,"magnet":0,"shield":0,"doubleSparks":0},"buildVersion":"0.1.0"}}
+UR_PERF session fps_avg=60.0 fps_min=35.5 frames=660 seconds=11.0 mono_mb=690.4 total_alloc_mb=140.8 gc=145
+]]></output>
+            </test-case>
+            <test-case id="1002" name="SceneLoad_SendsUnityReady_AndAnswersDebugPing" fullname="Tests.PlayMode.RunSceneTests.SceneLoad_SendsUnityReady_AndAnswersDebugPing" methodname="SceneLoad_SendsUnityReady_AndAnswersDebugPing" classname="Tests.PlayMode.RunSceneTests" runstate="Runnable" seed="710841803" result="Passed" start-time="2026-10-05 20:33:01Z" end-time="2026-10-05 20:33:01Z" duration="0.530452" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[UR_BRIDGE transport=StandaloneHostTransport
+UR_BRIDGE -> {"v":1,"type":"unity.ready","payload":{"bridgeVersion":1,"buildVersion":"0.1.0"}}
+UR_BRIDGE <- {"v":1,"type":"debug.ping","payload":{"id":9}}
+UR_BRIDGE -> {"v":1,"type":"debug.pong","payload":{"echo":{"id":9}}}
+Saving results to: /home/m-abdullah/.config/unity3d/GameFactory/Urban Runner/TestResults.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

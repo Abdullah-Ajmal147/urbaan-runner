@@ -6,7 +6,7 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Games/UrbanRunner/Scenes/Spike.unity
-    guid: 93ad2ee0bd4285b78a443b37d3b450d3
+    path: Assets/Games/UrbanRunner/Scenes/Run.unity
+    guid: daabc43a50dfd6c549dfe8e34490e634
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

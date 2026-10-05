@@ -49,11 +49,23 @@
 - Flutter: `BridgeMessage` (encode/decode), `UnityBridge` (one per app, because Unity is loaded once and never unloaded, so `unity.ready` arrives only once; 10 s ready timeout with retry), `UnityTransport` with `EmbedUnityTransport`.
 - Error codes Unity sends: `bad_message`, `version_mismatch`, `handler_failed`.
 
-### Spike-only messages (M0, removed from the game scene in M1)
+### Unity behaviour details (v1)
+
+- `session.start` needs a `sessionId`; without one Unity replies `error{code:"bad_session"}`. A `session.start` while a run is still active is rejected with `error{code:"session_active"}`. After `session.ended`, a new `session.start` can follow straight away, since Unity stays loaded.
+- `seed` is an unsigned integer (a JSON number or a numeric string). The same seed and config always produce the same track.
+- `config` values are clamped again on the Unity side to the §7.3 ranges (defence in depth). Flutter remains the owner of clamping and of logging `config_invalid`.
+- Revive flow (HANDOVER §3.8): crash → Unity sends `analytics.event{name:"revive_offer"}` and shows "Continue?" for 5 s. Yes → `analytics.event{name:"revive_accept"}`, then `ad.request{placement:"revive"}`. No or timeout → `analytics.event{name:"revive_decline"}`, then `session.ended{cause:"obstacle"}`. In autoplay test mode, Unity accepts automatically after 0.5 s.
+- `ad.result` is matched to the current session. Duplicates, late results and results for another session are ignored. Unity waits at most 60 s of **real** time (it still counts while the Unity player is paused for the ad).
+- `analytics.event` params always include `session_id`.
+- `session.ended`: `distanceM` is rounded to 0.1 m and `durationS` to 0.01 s. `durationS` is run time, excluding pauses and the revive prompt.
+- **Sanity cap for Flutter (rule 3):** a run can't produce more than `1.2 sparks per metre` of `distanceM`, even with Double Sparks active the whole time (`TrackRules.MaxSparksPerMetre`, enforced by an EditMode test).
+- Backgrounding the app mid-run pauses the run (`OnApplicationPause`). Flutter sends `game.resume` when the player continues.
+
+### Diagnostics (kept from the M0 spike)
 
 | Direction | type | payload |
 | --- | --- | --- |
-| Flutter → Unity | `spike.ping` | `id` |
-| Unity → Flutter | `spike.pong` | `echo` (the ping payload), `frame` |
-| Unity → Flutter | `spike.swipe` | `dir` (`left`/`right`/`up`/`down`) |
-| Unity → Flutter | `spike.paused` / `spike.resumed` | – |
+| Flutter → Unity | `debug.ping` | anything (e.g. `id`) |
+| Unity → Flutter | `debug.pong` | `echo` (the ping payload) |
+
+The M0 spike used `spike.ping`/`spike.pong`/`spike.swipe`/`spike.paused`. Those were retired in M1 together with the spike scene.

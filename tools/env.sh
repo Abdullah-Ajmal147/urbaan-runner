@@ -6,7 +6,8 @@
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 export ROOT
 LOCAL="$ROOT/tools/env.local"
-[ -f "$LOCAL" ] && source "$LOCAL"
+# An explicit UNITY in the environment wins over the cached value.
+if [ -z "${UNITY:-}" ] && [ -f "$LOCAL" ]; then source "$LOCAL"; fi
 
 ur_find_unity() {
   local hub="$HOME/Unity/Hub/Editor" v
@@ -63,35 +64,37 @@ ur_unity() {
   # emulator is running (docs/decisions.md D11), so Unity's adb gets its own port.
   ANDROID_ADB_SERVER_PORT="${UR_UNITY_ADB_PORT:-5099}" \
     "$UNITY" -batchmode -projectPath "$ROOT/unity" -logFile "$logfile" "$@" &
-  local pid=$! start=$SECONDS verdict="" verdict_at=0
+  local pid=$! start=$SECONDS verdict="" verdict_at=0 rc=0
   local limit="${UR_BATCHMODE_TIMEOUT:-2700}"
   while kill -0 "$pid" 2>/dev/null; do
     sleep 2
     if [ -z "$verdict" ] && [ -f "$logfile" ]; then
-      verdict="$(grep -aoE 'Exiting with code [0-9]+|UR_BATCH_EXIT [0-9]+' "$logfile" | head -1 | grep -oE '[0-9]+$')"
+      # `|| true`: callers may run with `set -euo pipefail`, and "no verdict yet" must not abort them.
+      verdict="$(grep -aoE 'Exiting with code [0-9]+|UR_BATCH_EXIT [0-9]+' "$logfile" 2>/dev/null | head -1 | grep -oE '[0-9]+$' || true)"
       [ -n "$verdict" ] && verdict_at=$SECONDS
     fi
-    if [ -n "$verdict" ] && [ $((SECONDS - verdict_at)) -ge 90 ]; then
+    if [ -n "$verdict" ] && [ $((SECONDS - verdict_at)) -ge "${UR_HANG_GRACE:-90}" ]; then
       echo "UR_WARN unity '$log' reported exit $verdict but hung on shutdown; stopping it" >&2
       ur_kill_tree "$pid"
-      wait "$pid" 2>/dev/null
+      wait "$pid" 2>/dev/null || true
       return "$verdict"
     fi
     if [ $((SECONDS - start)) -ge "$limit" ]; then
       echo "UR_ERROR unity batchmode '$log' timed out after ${limit}s" >&2
       ur_kill_tree "$pid"
-      wait "$pid" 2>/dev/null
+      wait "$pid" 2>/dev/null || true
       return 124
     fi
   done
-  wait "$pid"
+  wait "$pid" || rc=$?
+  return "$rc"
 }
 
 # Stop a process and all its descendants (Unity leaves helper processes behind when killed).
 ur_kill_tree() {
   local p
-  for p in $(pgrep -P "$1"); do ur_kill_tree "$p"; done
-  kill "$1" 2>/dev/null
+  for p in $(pgrep -P "$1" || true); do ur_kill_tree "$p"; done
+  kill "$1" 2>/dev/null || true
   sleep 1
-  kill -9 "$1" 2>/dev/null
+  kill -9 "$1" 2>/dev/null || true
 }

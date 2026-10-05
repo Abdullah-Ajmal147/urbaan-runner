@@ -8,3 +8,5 @@ Every external file in the app or the Unity project is listed here (HANDOVER §3
 | flutter_embed_unity / flutter_embed_unity_6000_0_android 2.0.0 | pub.dev | MIT | Flutter dependency |
 | Newtonsoft Json for Unity (`com.unity.nuget.newtonsoft-json` 3.2.1) | Unity package registry | MIT | bridge JSON in `unity/Assets/Core/Bridge/` |
 | uuid 4.6.0 | pub.dev | MIT | session IDs (Flutter) |
+| TextMesh Pro Essential Resources (shaders, settings) | Unity `com.unity.ugui` 2.0.0 package | Unity Companion License | `unity/Assets/TextMesh Pro/` |
+| Liberation Sans font (TMP default, in-run HUD until M2) | bundled with TMP Essential Resources | SIL Open Font License 1.1 (`unity/Assets/TextMesh Pro/Fonts/LiberationSans - OFL.txt`) | `unity/Assets/TextMesh Pro/Fonts/` |

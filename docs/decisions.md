@@ -58,3 +58,25 @@ Run on 2026-10-05, AVD `ur_api36` (API 36, x86_64, host GPU via Mesa Intel, GLES
 - **Problem:** With an emulator running, Unity batchmode killed the shared adb server on exit. Unity's bundled adb 36.0.0 and the SDK's adb 37.0.1 clash on port 5037, and the emulator dropped off. Separately, batchmode often hangs during shutdown after reporting its result (KNOWN_ISSUES K1).
 - **Decisions:** (1) Unity editor preference `AndroidADBKillServerOnExit` = 0 on this machine (backup of the previous prefs in `build/unity-prefs.backup`). (2) `ur_unity` runs Unity with `ANDROID_ADB_SERVER_PORT=5099`, so Unity's adb never touches the emulator's server. (3) `ur_unity` reads Unity's own verdict from the log (`Exiting with code N`, or `UR_BATCH_EXIT N` from `BuildScripts`), stops a process that is still alive 90 s later, and returns that verdict. It also refuses to start while another Unity process has the project open.
 - **Alternatives:** debugging the hang itself (no symbols, ptrace restricted), or never running Unity while an emulator is up (too fragile for M1+).
+
+## 2026-10-05 · M1
+
+### D12 · Gameplay is a pure C# simulation; MonoBehaviours only render it
+- **Reason:** It's deterministic (seed + inputs → the same run), testable in EditMode at thousands of simulated minutes per second, and allocation-free. `RunSimulation` owns the player, collisions, pickups, power-ups, stats and revive. `RunSession` owns the bridge protocol. `TrackView`, `PlayerView` and `Hud` only read from them. Collisions are lane/AABB logic with fixed 1/120 s sub-steps, so there's no tunnelling at 30 m/s and no physics engine cost.
+- **Alternatives:** Unity physics with triggers. That's non-deterministic and harder to test.
+
+### D13 · Gaps are placed in time, not metres
+- **Reason:** §3.4 requires gap ≥ speed × 0.7 s, but speed keeps rising between generation and arrival. The generator uses the exact closed-form distance↔time relation of the speed curve (`DifficultyCurve.DistanceAt/TimeAt`), so every gap takes at least `gapBeats × 0.8 s` to cross, whenever the player gets there. Pauses and the revive prompt freeze both time and distance, so the relation always holds.
+- **Rolling carts** reach the row's start exactly when the player does. They're drawn rolling toward the player, so for collision purposes they act like a lane blocker at the row. This keeps the guarantee exact.
+
+### D14 · Chunk templates are hand-authored as compact patterns and stored as ScriptableObjects
+- **Reason:** §3.4 asks for ScriptableObject templates. `ChunkCatalog` holds 25 patterns (9 tier-1, 9 tier-2, 7 tier-3), turned into assets once. After that the assets are the source of truth and can be edited in the Inspector, and `ChunkLibrary.Validate()` plus the generator tests catch authoring mistakes.
+
+### D15 · In-run HUD uses TextMeshPro (from the ugui 2.0 package)
+- **Reason:** `SetText("{0} m", value)` doesn't allocate, which matters for the 0 B/frame budget. The TMP Essential Resources are committed, because batchmode can't import a .unitypackage synchronously (`tools/lib/extract_unitypackage.py`). The EmojiOne sample sprites that ship with them were removed because their license terms aren't clear (rule 5).
+
+### D16 · Visuals are built from primitives and pooled at scene load
+- **Reason:** §3.11 (no Instantiate during a run). `TrackView` maps sim item ids to fixed slots. `ObjectPool.GrowCount` must stay 0, and a PlayMode test asserts this after a 3-minute run. M2 replaces the primitives with the Lantern City art pass.
+
+### D17 · M0 spike retired
+- The spike scene, `SpikeController` and its PlayMode tests were replaced by the Run scene and `RunSceneTests` (unity.ready, debug.ping, pause and resume are covered there). The Flutter spike screen stays until M3 rebuilds the shell; `tools/spike_m0.sh` is kept as the record of the M0 verdict.

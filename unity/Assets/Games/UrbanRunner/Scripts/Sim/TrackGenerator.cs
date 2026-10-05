@@ -38,6 +38,8 @@ namespace UrbanRunner.Sim
         double _prevEnd;
         double _nextPowerUpZ;
         int _nextId;
+        int _nextSparkId;
+        int _nextPowerUpId;
 
         public RingBuffer<TrackRow> Rows { get; } = new RingBuffer<TrackRow>(96);
         public RingBuffer<Spark> Sparks { get; } = new RingBuffer<Spark>(384);
@@ -165,14 +167,14 @@ namespace UrbanRunner.Sim
             if (lane < 0) return;
 
             for (var z = gapStart + TrackRules.SparkSpacing; z < row.Z - 1.0; z += TrackRules.SparkSpacing)
-                Sparks.Push(new Spark { Z = z, Lane = (byte)lane, Y = 1.0f });
+                Sparks.Push(new Spark { Id = _nextSparkId++, Z = z, Lane = (byte)lane, Y = 1.0f });
 
             if (row.Get(lane) == Obstacle.Crate)
             {
                 // Arc over the crate, at the top of a well-timed jump.
-                Sparks.Push(new Spark { Z = row.Z - 0.5, Lane = (byte)lane, Y = 1.9f });
-                Sparks.Push(new Spark { Z = row.Z + 0.5, Lane = (byte)lane, Y = 2.2f });
-                Sparks.Push(new Spark { Z = row.Z + 1.5, Lane = (byte)lane, Y = 1.9f });
+                Sparks.Push(new Spark { Id = _nextSparkId++, Z = row.Z - 0.5, Lane = (byte)lane, Y = 1.9f });
+                Sparks.Push(new Spark { Id = _nextSparkId++, Z = row.Z + 0.5, Lane = (byte)lane, Y = 2.2f });
+                Sparks.Push(new Spark { Id = _nextSparkId++, Z = row.Z + 1.5, Lane = (byte)lane, Y = 1.9f });
             }
         }
 
@@ -189,7 +191,7 @@ namespace UrbanRunner.Sim
             var kind = (PowerUpKind)_rng.Range(0, 3);
             // At the target distance, kept clear of both rows; spacing stays 250–400 m (+ at most one row's length).
             var z = Math.Max(gapStart + 0.5, Math.Min(_nextPowerUpZ, row.Z - 0.5));
-            PowerUps.Push(new PowerUpPickup { Z = z, Lane = (byte)lane, Kind = kind });
+            PowerUps.Push(new PowerUpPickup { Id = _nextPowerUpId++, Z = z, Lane = (byte)lane, Kind = kind });
             _nextPowerUpZ = z + _rng.Range(PowerUpRules.MinSpacingM, PowerUpRules.MaxSpacingM);
         }
     }

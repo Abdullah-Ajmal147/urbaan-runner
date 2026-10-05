@@ -1,8 +1,17 @@
 {
     "name": "UrbanRunner.Editor",
     "rootNamespace": "UrbanRunner.Editor",
-    "references": ["UrbanRunner", "GameFactory.Core", "GameFactory.Editor", "Unity.RenderPipelines.Universal.Runtime", "Unity.RenderPipelines.Core.Runtime"],
-    "includePlatforms": ["Editor"],
+    "references": [
+        "UrbanRunner",
+        "GameFactory.Core",
+        "GameFactory.Editor",
+        "Unity.RenderPipelines.Universal.Runtime",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.TextMeshPro"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,

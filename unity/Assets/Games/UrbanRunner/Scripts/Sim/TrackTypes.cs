@@ -115,6 +115,7 @@ namespace UrbanRunner.Sim
 
     public struct Spark
     {
+        public int Id;
         public double Z;
         public byte Lane;
         public float Y;
@@ -123,6 +124,7 @@ namespace UrbanRunner.Sim
 
     public struct PowerUpPickup
     {
+        public int Id;
         public double Z;
         public byte Lane;
         public PowerUpKind Kind;

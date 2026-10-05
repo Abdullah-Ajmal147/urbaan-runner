@@ -1,0 +1,5 @@
+/home/m-abdullah/Desktop/Personal Project/game-factory/unity/.utmp/RelWithDebInfo/4ts1123y/arm64-v8a/CMakeFiles/edit_cache.dir
+/home/m-abdullah/Desktop/Personal Project/game-factory/unity/.utmp/RelWithDebInfo/4ts1123y/arm64-v8a/CMakeFiles/rebuild_cache.dir
+/home/m-abdullah/Desktop/Personal Project/game-factory/unity/.utmp/RelWithDebInfo/4ts1123y/arm64-v8a/FramePacing/CMakeFiles/swappywrapper.dir
+/home/m-abdullah/Desktop/Personal Project/game-factory/unity/.utmp/RelWithDebInfo/4ts1123y/arm64-v8a/FramePacing/CMakeFiles/edit_cache.dir
+/home/m-abdullah/Desktop/Personal Project/game-factory/unity/.utmp/RelWithDebInfo/4ts1123y/arm64-v8a/FramePacing/CMakeFiles/rebuild_cache.dir

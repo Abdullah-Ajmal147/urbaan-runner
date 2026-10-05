@@ -1,0 +1,569 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="79" result="Passed" total="79" passed="79" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-05 20:29:17Z" end-time="2026-10-05 20:29:42Z" duration="24.8638589">
+  <test-suite type="TestSuite" id="1000" name="Urban Runner" fullname="Urban Runner" runstate="Runnable" testcasecount="79" result="Passed" start-time="2026-10-05 20:29:17Z" end-time="2026-10-05 20:29:42Z" duration="24.863859" total="79" passed="79" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1090" name="Tests.EditMode.dll" fullname="/home/m-abdullah/Desktop/Personal Project/game-factory/unity/Library/ScriptAssemblies/Tests.EditMode.dll" runstate="Runnable" testcasecount="79" result="Passed" start-time="2026-10-05 20:29:17Z" end-time="2026-10-05 20:29:42Z" duration="24.852680" total="79" passed="79" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="221210" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1091" name="Tests" fullname="Tests" runstate="Runnable" testcasecount="79" result="Passed" start-time="2026-10-05 20:29:17Z" end-time="2026-10-05 20:29:42Z" duration="24.852144" total="79" passed="79" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1092" name="EditMode" fullname="Tests.EditMode" runstate="Runnable" testcasecount="79" result="Passed" start-time="2026-10-05 20:29:17Z" end-time="2026-10-05 20:29:42Z" duration="24.851915" total="79" passed="79" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestFixture" id="1001" name="BridgeTests" fullname="Tests.EditMode.BridgeTests" classname="Tests.EditMode.BridgeTests" runstate="Runnable" testcasecount="15" result="Passed" start-time="2026-10-05 20:29:17Z" end-time="2026-10-05 20:29:17Z" duration="0.140335" total="15" passed="15" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="ParameterizedMethod" id="1010" name="Envelope_Malformed_Throws" fullname="Tests.EditMode.BridgeTests.Envelope_Malformed_Throws" classname="Tests.EditMode.BridgeTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-10-05 20:29:17Z" end-time="2026-10-05 20:29:17Z" duration="0.054118" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1004" name="Envelope_Malformed_Throws(&quot;&quot;)" fullname="Tests.EditMode.BridgeTests.Envelope_Malformed_Throws(&quot;&quot;)" methodname="Envelope_Malformed_Throws" classname="Tests.EditMode.BridgeTests" runstate="Runnable" seed="1558685177" result="Passed" start-time="2026-10-05 20:29:17Z" end-time="2026-10-05 20:29:17Z" duration="0.023721" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1005" name="Envelope_Malformed_Throws(&quot;not json&quot;)" fullname="Tests.EditMode.BridgeTests.Envelope_Malformed_Throws(&quot;not json&quot;)" methodname="Envelope_Malformed_Throws" classname="Tests.EditMode.BridgeTests" runstate="Runnable" seed="805647934" result="Passed" start-time="2026-10-05 20:29:17Z" end-time="2026-10-05 20:29:17Z" duration="0.005373" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1006" name="Envelope_Malformed_Throws(&quot;{\&quot;type\&quot;:\&quot;x\&quot;}&quot;)" fullname="Tests.EditMode.BridgeTests.Envelope_Malformed_Throws(&quot;{\&quot;type\&quot;:\&quot;x\&quot;}&quot;)" methodname="Envelope_Malformed_Throws" classname="Tests.EditMode.BridgeTests" runstate="Runnable" seed="1841035344" result="Passed" start-time="2026-10-05 20:29:17Z" end-time="2026-10-05 20:29:17Z" duration="0.010202" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1007" name="Envelope_Malformed_Throws(&quot;{\&quot;v\&quot;:\&quot;1\&quot;,\&quot;type\&quot;:\&quot;x\&quot;}&quot;)" fullname="Tests.EditMode.BridgeTests.Envelope_Malformed_Throws(&quot;{\&quot;v\&quot;:\&quot;1\&quot;,\&quot;type\&quot;:\&quot;x\&quot;}&quot;)" methodname="Envelope_Malformed_Throws" classname="Tests.EditMode.BridgeTests" runstate="Runnable" seed="1510044266" result="Passed" start-time="2026-10-05 20:29:17Z" end-time="2026-10-05 20:29:17Z" duration="0.000568" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1008" name="Envelope_Malformed_Throws(&quot;{\&quot;v\&quot;:1}&quot;)" fullname="Tests.EditMode.BridgeTests.Envelope_Malformed_Throws(&quot;{\&quot;v\&quot;:1}&quot;)" methodname="Envelope_Malformed_Throws" classname="Tests.EditMode.BridgeTests" runstate="Runnable" seed="746472694" result="Passed" start-time="2026-10-05 20:29:17Z" end-time="2026-10-05 20:29:17Z" duration="0.003234" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1009" name="Envelope_Malformed_Throws(&quot;{\&quot;v\&quot;:1,\&quot;type\&quot;:\&quot;x\&quot;,\&quot;payload\&quot;:[1]}&quot;)" fullname="Tests.EditMode.BridgeTests.Envelope_Malformed_Throws(&quot;{\&quot;v\&quot;:1,\&quot;type\&quot;:\&quot;x\&quot;,\&quot;payload\&quot;:[1]}&quot;)" methodname="Envelope_Malformed_Throws" classname="Tests.EditMode.BridgeTests" runstate="Runnable" seed="153756832" result="Passed" start-time="2026-10-05 20:29:17Z" end-time="2026-10-05 20:29:17Z" duration="0.002294" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-case id="1003" name="Envelope_MissingPayload_IsEmptyObject" fullname="Tests.EditMode.BridgeTests.Envelope_MissingPayload_IsEmptyObject" methodname="Envelope_MissingPayload_IsEmptyObject" classname="Tests.EditMode.BridgeTests" runstate="Runnable" seed="1466528374" result="Passed" start-time="2026-10-05 20:29:17Z" end-time="2026-10-05 20:29:17Z" duration="0.009095" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1002" name="Envelope_RoundTrips" fullname="Tests.EditMode.BridgeTests.Envelope_RoundTrips" methodname="Envelope_RoundTrips" classname="Tests.EditMode.BridgeTests" runstate="Runnable" seed="812518952" result="Passed" start-time="2026-10-05 20:29:17Z" end-time="2026-10-05 20:29:17Z" duration="0.050316" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1011" name="Numbers_UseInvariantCulture_EvenUnderCommaLocale" fullname="Tests.EditMode.BridgeTests.Numbers_UseInvariantCulture_EvenUnderCommaLocale" methodname="Numbers_UseInvariantCulture_EvenUnderCommaLocale" classname="Tests.EditMode.BridgeTests" runstate="Runnable" seed="1422167281" result="Passed" start-time="2026-10-05 20:29:17Z" end-time="2026-10-05 20:29:17Z" duration="0.006482" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1015" name="Router_BadJson_SendsError" fullname="Tests.EditMode.BridgeTests.Router_BadJson_SendsError" methodname="Router_BadJson_SendsError" classname="Tests.EditMode.BridgeTests" runstate="Runnable" seed="1528298970" result="Passed" start-time="2026-10-05 20:29:17Z" end-time="2026-10-05 20:29:17Z" duration="0.002998" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1012" name="Router_DispatchesByType" fullname="Tests.EditMode.BridgeTests.Router_DispatchesByType" methodname="Router_DispatchesByType" classname="Tests.EditMode.BridgeTests" runstate="Runnable" seed="600226971" result="Passed" start-time="2026-10-05 20:29:17Z" end-time="2026-10-05 20:29:17Z" duration="0.000725" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1016" name="Router_HandlerException_BecomesErrorMessage" fullname="Tests.EditMode.BridgeTests.Router_HandlerException_BecomesErrorMessage" methodname="Router_HandlerException_BecomesErrorMessage" classname="Tests.EditMode.BridgeTests" runstate="Runnable" seed="2111044020" result="Passed" start-time="2026-10-05 20:29:17Z" end-time="2026-10-05 20:29:17Z" duration="0.000669" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1017" name="Router_Send_WritesEnvelope" fullname="Tests.EditMode.BridgeTests.Router_Send_WritesEnvelope" methodname="Router_Send_WritesEnvelope" classname="Tests.EditMode.BridgeTests" runstate="Runnable" seed="1493172875" result="Passed" start-time="2026-10-05 20:29:17Z" end-time="2026-10-05 20:29:17Z" duration="0.000469" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1013" name="Router_UnknownType_IsIgnoredWithoutReply" fullname="Tests.EditMode.BridgeTests.Router_UnknownType_IsIgnoredWithoutReply" methodname="Router_UnknownType_IsIgnoredWithoutReply" classname="Tests.EditMode.BridgeTests" runstate="Runnable" seed="1586629168" result="Passed" start-time="2026-10-05 20:29:17Z" end-time="2026-10-05 20:29:17Z" duration="0.000245" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1014" name="Router_VersionMismatch_SendsError" fullname="Tests.EditMode.BridgeTests.Router_VersionMismatch_SendsError" methodname="Router_VersionMismatch_SendsError" classname="Tests.EditMode.BridgeTests" runstate="Runnable" seed="157537743" result="Passed" start-time="2026-10-05 20:29:17Z" end-time="2026-10-05 20:29:17Z" duration="0.000822" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1018" name="GeneratorTests" fullname="Tests.EditMode.GeneratorTests" classname="Tests.EditMode.GeneratorTests" runstate="Runnable" testcasecount="14" result="Passed" start-time="2026-10-05 20:29:17Z" end-time="2026-10-05 20:29:41Z" duration="23.962664" total="14" passed="14" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1023" name="DifferentSeeds_DifferentTracks" fullname="Tests.EditMode.GeneratorTests.DifferentSeeds_DifferentTracks" methodname="DifferentSeeds_DifferentTracks" classname="Tests.EditMode.GeneratorTests" runstate="Runnable" seed="1768805812" result="Passed" start-time="2026-10-05 20:29:17Z" end-time="2026-10-05 20:29:17Z" duration="0.005195" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1021" name="Generator_HoldsAtExtremeConfig" fullname="Tests.EditMode.GeneratorTests.Generator_HoldsAtExtremeConfig" methodname="Generator_HoldsAtExtremeConfig" classname="Tests.EditMode.GeneratorTests" runstate="Runnable" seed="567734067" result="Passed" start-time="2026-10-05 20:29:17Z" end-time="2026-10-05 20:29:19Z" duration="2.089158" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1020" name="Generator_NeverProducesAnImpossibleRow_100Seeds_x_10000Rows" fullname="Tests.EditMode.GeneratorTests.Generator_NeverProducesAnImpossibleRow_100Seeds_x_10000Rows" methodname="Generator_NeverProducesAnImpossibleRow_100Seeds_x_10000Rows" classname="Tests.EditMode.GeneratorTests" runstate="Runnable" seed="1993361908" result="Passed" start-time="2026-10-05 20:29:19Z" end-time="2026-10-05 20:29:41Z" duration="21.743634" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1019" name="Library_IsValid" fullname="Tests.EditMode.GeneratorTests.Library_IsValid" methodname="Library_IsValid" classname="Tests.EditMode.GeneratorTests" runstate="Runnable" seed="102370310" result="Passed" start-time="2026-10-05 20:29:41Z" end-time="2026-10-05 20:29:41Z" duration="0.028815" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1024" name="PowerUps_Every250To400m" fullname="Tests.EditMode.GeneratorTests.PowerUps_Every250To400m" methodname="PowerUps_Every250To400m" classname="Tests.EditMode.GeneratorTests" runstate="Runnable" seed="1836158212" result="Passed" start-time="2026-10-05 20:29:41Z" end-time="2026-10-05 20:29:41Z" duration="0.018587" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1025" name="PowerUps_KeepSpawningAfterTargetFallsInsideARow" fullname="Tests.EditMode.GeneratorTests.PowerUps_KeepSpawningAfterTargetFallsInsideARow" methodname="PowerUps_KeepSpawningAfterTargetFallsInsideARow" classname="Tests.EditMode.GeneratorTests" runstate="Runnable" seed="823682529" result="Passed" start-time="2026-10-05 20:29:41Z" end-time="2026-10-05 20:29:41Z" duration="0.000878" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1022" name="SameSeed_SameTrack" fullname="Tests.EditMode.GeneratorTests.SameSeed_SameTrack" methodname="SameSeed_SameTrack" classname="Tests.EditMode.GeneratorTests" runstate="Runnable" seed="1512865058" result="Passed" start-time="2026-10-05 20:29:41Z" end-time="2026-10-05 20:29:41Z" duration="0.003449" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1026" name="SparkDensity_StaysUnderTheContractCap" fullname="Tests.EditMode.GeneratorTests.SparkDensity_StaysUnderTheContractCap" methodname="SparkDensity_StaysUnderTheContractCap" classname="Tests.EditMode.GeneratorTests" runstate="Runnable" seed="634956270" result="Passed" start-time="2026-10-05 20:29:41Z" end-time="2026-10-05 20:29:41Z" duration="0.007208" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-suite type="ParameterizedMethod" id="1033" name="Tiers_UnlockByDistance" fullname="Tests.EditMode.GeneratorTests.Tiers_UnlockByDistance" classname="Tests.EditMode.GeneratorTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-10-05 20:29:41Z" end-time="2026-10-05 20:29:41Z" duration="0.002798" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1027" name="Tiers_UnlockByDistance(0.0d,1)" fullname="Tests.EditMode.GeneratorTests.Tiers_UnlockByDistance(0.0d,1)" methodname="Tiers_UnlockByDistance" classname="Tests.EditMode.GeneratorTests" runstate="Runnable" seed="1466264635" result="Passed" start-time="2026-10-05 20:29:41Z" end-time="2026-10-05 20:29:41Z" duration="0.000458" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1028" name="Tiers_UnlockByDistance(499.9d,1)" fullname="Tests.EditMode.GeneratorTests.Tiers_UnlockByDistance(499.9d,1)" methodname="Tiers_UnlockByDistance" classname="Tests.EditMode.GeneratorTests" runstate="Runnable" seed="293057967" result="Passed" start-time="2026-10-05 20:29:41Z" end-time="2026-10-05 20:29:41Z" duration="0.000088" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1029" name="Tiers_UnlockByDistance(500.0d,2)" fullname="Tests.EditMode.GeneratorTests.Tiers_UnlockByDistance(500.0d,2)" methodname="Tiers_UnlockByDistance" classname="Tests.EditMode.GeneratorTests" runstate="Runnable" seed="1212023729" result="Passed" start-time="2026-10-05 20:29:41Z" end-time="2026-10-05 20:29:41Z" duration="0.000054" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1030" name="Tiers_UnlockByDistance(1499.9d,2)" fullname="Tests.EditMode.GeneratorTests.Tiers_UnlockByDistance(1499.9d,2)" methodname="Tiers_UnlockByDistance" classname="Tests.EditMode.GeneratorTests" runstate="Runnable" seed="1316929518" result="Passed" start-time="2026-10-05 20:29:41Z" end-time="2026-10-05 20:29:41Z" duration="0.000057" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1031" name="Tiers_UnlockByDistance(1500.0d,3)" fullname="Tests.EditMode.GeneratorTests.Tiers_UnlockByDistance(1500.0d,3)" methodname="Tiers_UnlockByDistance" classname="Tests.EditMode.GeneratorTests" runstate="Runnable" seed="69204709" result="Passed" start-time="2026-10-05 20:29:41Z" end-time="2026-10-05 20:29:41Z" duration="0.000048" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1032" name="Tiers_UnlockByDistance(50000.0d,3)" fullname="Tests.EditMode.GeneratorTests.Tiers_UnlockByDistance(50000.0d,3)" methodname="Tiers_UnlockByDistance" classname="Tests.EditMode.GeneratorTests" runstate="Runnable" seed="960738421" result="Passed" start-time="2026-10-05 20:29:41Z" end-time="2026-10-05 20:29:41Z" duration="0.000051" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+          </test-suite>
+          <test-suite type="TestFixture" id="1034" name="ProjectSetupTests" fullname="Tests.EditMode.ProjectSetupTests" classname="Tests.EditMode.ProjectSetupTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-10-05 20:29:41Z" end-time="2026-10-05 20:29:41Z" duration="0.517883" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1038" name="AndroidSettings_MatchHandover" fullname="Tests.EditMode.ProjectSetupTests.AndroidSettings_MatchHandover" methodname="AndroidSettings_MatchHandover" classname="Tests.EditMode.ProjectSetupTests" runstate="Runnable" seed="1508236078" result="Passed" start-time="2026-10-05 20:29:41Z" end-time="2026-10-05 20:29:41Z" duration="0.002498" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1037" name="BuildSettings_ContainOnlyTheRunScene" fullname="Tests.EditMode.ProjectSetupTests.BuildSettings_ContainOnlyTheRunScene" methodname="BuildSettings_ContainOnlyTheRunScene" classname="Tests.EditMode.ProjectSetupTests" runstate="Runnable" seed="420086536" result="Passed" start-time="2026-10-05 20:29:41Z" end-time="2026-10-05 20:29:41Z" duration="0.001261" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1036" name="GameAssets_AllMaterialsAndFontAssigned" fullname="Tests.EditMode.ProjectSetupTests.GameAssets_AllMaterialsAndFontAssigned" methodname="GameAssets_AllMaterialsAndFontAssigned" classname="Tests.EditMode.ProjectSetupTests" runstate="Runnable" seed="1505392245" result="Passed" start-time="2026-10-05 20:29:41Z" end-time="2026-10-05 20:29:41Z" duration="0.006366" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1035" name="RunScene_GameRootReferencesAreSet" fullname="Tests.EditMode.ProjectSetupTests.RunScene_GameRootReferencesAreSet" methodname="RunScene_GameRootReferencesAreSet" classname="Tests.EditMode.ProjectSetupTests" runstate="Runnable" seed="1984705570" result="Passed" start-time="2026-10-05 20:29:41Z" end-time="2026-10-05 20:29:41Z" duration="0.506217" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1039" name="SessionTests" fullname="Tests.EditMode.SessionTests" classname="Tests.EditMode.SessionTests" runstate="Runnable" testcasecount="15" result="Passed" start-time="2026-10-05 20:29:41Z" end-time="2026-10-05 20:29:42Z" duration="0.065554" total="15" passed="15" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1047" name="AdResult_TimesOutAfter60s" fullname="Tests.EditMode.SessionTests.AdResult_TimesOutAfter60s" methodname="AdResult_TimesOutAfter60s" classname="Tests.EditMode.SessionTests" runstate="Runnable" seed="2130921109" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.019727" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[UR_GAME session s1 start seed=1234 mode=normal autoplay=False
+UR_GAME ad.result timeout: treating as not granted
+UR_GAME session s1 ended cause=obstacle distance=8 sparks=0
+]]></output>
+            </test-case>
+            <test-case id="1054" name="DebugPing_IsAnswered" fullname="Tests.EditMode.SessionTests.DebugPing_IsAnswered" methodname="DebugPing_IsAnswered" classname="Tests.EditMode.SessionTests" runstate="Runnable" seed="1149619147" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.002844" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1048" name="DuplicateAdResult_IsIgnored" fullname="Tests.EditMode.SessionTests.DuplicateAdResult_IsIgnored" methodname="DuplicateAdResult_IsIgnored" classname="Tests.EditMode.SessionTests" runstate="Runnable" seed="351121341" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.003925" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[UR_GAME session s1 start seed=1234 mode=normal autoplay=False
+UR_GAME revived
+UR_BRIDGE ignoring ad.result (phase Running)
+]]></output>
+            </test-case>
+            <test-case id="1043" name="EndAfterSeconds_EndsWithCauseTest_AndFullPayload" fullname="Tests.EditMode.SessionTests.EndAfterSeconds_EndsWithCauseTest_AndFullPayload" methodname="EndAfterSeconds_EndsWithCauseTest_AndFullPayload" classname="Tests.EditMode.SessionTests" runstate="Runnable" seed="631918990" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.005666" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[UR_GAME session s1 start seed=1234 mode=normal autoplay=True
+UR_GAME session s1 ended cause=test distance=170 sparks=6
+]]></output>
+            </test-case>
+            <test-case id="1044" name="ForcedCrash_OffersRevive_DeclineEndsWithObstacle" fullname="Tests.EditMode.SessionTests.ForcedCrash_OffersRevive_DeclineEndsWithObstacle" methodname="ForcedCrash_OffersRevive_DeclineEndsWithObstacle" classname="Tests.EditMode.SessionTests" runstate="Runnable" seed="220179290" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.003211" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[UR_GAME session s1 start seed=1234 mode=normal autoplay=False
+UR_GAME session s1 ended cause=obstacle distance=24 sparks=0
+]]></output>
+            </test-case>
+            <test-case id="1053" name="NewSessionAfterEnd_Works" fullname="Tests.EditMode.SessionTests.NewSessionAfterEnd_Works" methodname="NewSessionAfterEnd_Works" classname="Tests.EditMode.SessionTests" runstate="Runnable" seed="204688779" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.004218" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[UR_GAME session s1 start seed=1234 mode=normal autoplay=True
+UR_GAME session s1 ended cause=test distance=8 sparks=0
+UR_GAME session s2 start seed=1234 mode=normal autoplay=True
+UR_GAME session s2 ended cause=test distance=8 sparks=0
+]]></output>
+            </test-case>
+            <test-case id="1051" name="PauseFreezesTheRun" fullname="Tests.EditMode.SessionTests.PauseFreezesTheRun" methodname="PauseFreezesTheRun" classname="Tests.EditMode.SessionTests" runstate="Runnable" seed="658627838" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.002996" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[UR_GAME session s1 start seed=1234 mode=normal autoplay=True
+UR_GAME paused
+UR_GAME resumed
+]]></output>
+            </test-case>
+            <test-case id="1050" name="Quit_EndsWithCauseQuit" fullname="Tests.EditMode.SessionTests.Quit_EndsWithCauseQuit" methodname="Quit_EndsWithCauseQuit" classname="Tests.EditMode.SessionTests" runstate="Runnable" seed="579132001" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.002226" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[UR_GAME session s1 start seed=1234 mode=normal autoplay=True
+UR_GAME session s1 ended cause=quit distance=16 sparks=0
+]]></output>
+            </test-case>
+            <test-case id="1045" name="Revive_Granted_ResumesTheRun" fullname="Tests.EditMode.SessionTests.Revive_Granted_ResumesTheRun" methodname="Revive_Granted_ResumesTheRun" classname="Tests.EditMode.SessionTests" runstate="Runnable" seed="1933633428" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.004054" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[UR_GAME session s1 start seed=1234 mode=normal autoplay=True
+UR_GAME revived
+UR_GAME session s1 ended cause=test distance=83 sparks=6
+]]></output>
+            </test-case>
+            <test-case id="1046" name="Revive_NotGranted_Ends" fullname="Tests.EditMode.SessionTests.Revive_NotGranted_Ends" methodname="Revive_NotGranted_Ends" classname="Tests.EditMode.SessionTests" runstate="Runnable" seed="1033128573" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.002344" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[UR_GAME session s1 start seed=1234 mode=normal autoplay=False
+UR_GAME session s1 ended cause=obstacle distance=8 sparks=0
+]]></output>
+            </test-case>
+            <test-case id="1049" name="SecondCrash_AfterLastRevive_EndsDirectly" fullname="Tests.EditMode.SessionTests.SecondCrash_AfterLastRevive_EndsDirectly" methodname="SecondCrash_AfterLastRevive_EndsDirectly" classname="Tests.EditMode.SessionTests" runstate="Runnable" seed="1943994227" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.003567" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[UR_GAME session s1 start seed=1234 mode=normal autoplay=False
+UR_GAME revived
+UR_GAME session s1 ended cause=obstacle distance=53 sparks=0
+]]></output>
+            </test-case>
+            <test-case id="1042" name="SecondStartWhileRunning_IsRejected" fullname="Tests.EditMode.SessionTests.SecondStartWhileRunning_IsRejected" methodname="SecondStartWhileRunning_IsRejected" classname="Tests.EditMode.SessionTests" runstate="Runnable" seed="286422532" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.001673" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[UR_GAME session s1 start seed=1234 mode=normal autoplay=False
+]]></output>
+            </test-case>
+            <test-case id="1052" name="SettingsUpdate_IsApplied" fullname="Tests.EditMode.SessionTests.SettingsUpdate_IsApplied" methodname="SettingsUpdate_IsApplied" classname="Tests.EditMode.SessionTests" runstate="Runnable" seed="1688873270" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.001041" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1040" name="Start_SendsSessionStarted_AndAppliesPayload" fullname="Tests.EditMode.SessionTests.Start_SendsSessionStarted_AndAppliesPayload" methodname="Start_SendsSessionStarted_AndAppliesPayload" classname="Tests.EditMode.SessionTests" runstate="Runnable" seed="187254600" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.002158" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[UR_GAME session s1 start seed=1234 mode=normal autoplay=False
+]]></output>
+            </test-case>
+            <test-case id="1041" name="StartWithoutSessionId_IsAnError" fullname="Tests.EditMode.SessionTests.StartWithoutSessionId_IsAnError" methodname="StartWithoutSessionId_IsAnError" classname="Tests.EditMode.SessionTests" runstate="Runnable" seed="258207582" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.000496" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1055" name="SimulationTests" fullname="Tests.EditMode.SimulationTests" classname="Tests.EditMode.SimulationTests" runstate="Runnable" testcasecount="22" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.159748" total="22" passed="22" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1059" name="Config_IsClamped" fullname="Tests.EditMode.SimulationTests.Config_IsClamped" methodname="Config_IsClamped" classname="Tests.EditMode.SimulationTests" runstate="Runnable" seed="1925124336" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.001150" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1057" name="DistanceAndTime_AreInverse" fullname="Tests.EditMode.SimulationTests.DistanceAndTime_AreInverse" methodname="DistanceAndTime_AreInverse" classname="Tests.EditMode.SimulationTests" runstate="Runnable" seed="181733106" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.000293" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1068" name="DoubleSparks_DoublesPickups" fullname="Tests.EditMode.SimulationTests.DoubleSparks_DoublesPickups" methodname="DoubleSparks_DoublesPickups" classname="Tests.EditMode.SimulationTests" runstate="Runnable" seed="1566465390" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.001387" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1072" name="EdgeLane_SwipeOutwardIsABumpNotAChange" fullname="Tests.EditMode.SimulationTests.EdgeLane_SwipeOutwardIsABumpNotAChange" methodname="EdgeLane_SwipeOutwardIsABumpNotAChange" classname="Tests.EditMode.SimulationTests" runstate="Runnable" seed="1160292122" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.000385" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1076" name="ForcedCrash_StopsTheRun" fullname="Tests.EditMode.SimulationTests.ForcedCrash_StopsTheRun" methodname="ForcedCrash_StopsTheRun" classname="Tests.EditMode.SimulationTests" runstate="Runnable" seed="725866193" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.000375" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1073" name="JumpPressedJustBeforeLanding_IsBuffered" fullname="Tests.EditMode.SimulationTests.JumpPressedJustBeforeLanding_IsBuffered" methodname="JumpPressedJustBeforeLanding_IsBuffered" classname="Tests.EditMode.SimulationTests" runstate="Runnable" seed="1557198579" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.000334" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1071" name="LaneChange_TakesAbout120ms" fullname="Tests.EditMode.SimulationTests.LaneChange_TakesAbout120ms" methodname="LaneChange_TakesAbout120ms" classname="Tests.EditMode.SimulationTests" runstate="Runnable" seed="739767475" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.000292" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1074" name="PerfectBot_SurvivesFiveMinutes_20Seeds" fullname="Tests.EditMode.SimulationTests.PerfectBot_SurvivesFiveMinutes_20Seeds" methodname="PerfectBot_SurvivesFiveMinutes_20Seeds" classname="Tests.EditMode.SimulationTests" runstate="Runnable" seed="306532471" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.144098" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-suite type="ParameterizedMethod" id="1066" name="PowerUp_Durations" fullname="Tests.EditMode.SimulationTests.PowerUp_Durations" classname="Tests.EditMode.SimulationTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.002416" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1060" name="PowerUp_Durations(Magnet,0,8.0f)" fullname="Tests.EditMode.SimulationTests.PowerUp_Durations(Magnet,0,8.0f)" methodname="PowerUp_Durations" classname="Tests.EditMode.SimulationTests" runstate="Runnable" seed="1703425575" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.000603" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1061" name="PowerUp_Durations(Magnet,5,15.5f)" fullname="Tests.EditMode.SimulationTests.PowerUp_Durations(Magnet,5,15.5f)" methodname="PowerUp_Durations" classname="Tests.EditMode.SimulationTests" runstate="Runnable" seed="255198575" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.000156" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1062" name="PowerUp_Durations(Shield,0,20.0f)" fullname="Tests.EditMode.SimulationTests.PowerUp_Durations(Shield,0,20.0f)" methodname="PowerUp_Durations" classname="Tests.EditMode.SimulationTests" runstate="Runnable" seed="1847841659" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.000085" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1063" name="PowerUp_Durations(Shield,5,35.0f)" fullname="Tests.EditMode.SimulationTests.PowerUp_Durations(Shield,5,35.0f)" methodname="PowerUp_Durations" classname="Tests.EditMode.SimulationTests" runstate="Runnable" seed="1468141737" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.000067" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1064" name="PowerUp_Durations(DoubleSparks,0,10.0f)" fullname="Tests.EditMode.SimulationTests.PowerUp_Durations(DoubleSparks,0,10.0f)" methodname="PowerUp_Durations" classname="Tests.EditMode.SimulationTests" runstate="Runnable" seed="2113147479" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.000072" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1065" name="PowerUp_Durations(DoubleSparks,5,20.0f)" fullname="Tests.EditMode.SimulationTests.PowerUp_Durations(DoubleSparks,5,20.0f)" methodname="PowerUp_Durations" classname="Tests.EditMode.SimulationTests" runstate="Runnable" seed="608809766" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.000060" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-case id="1067" name="PowerUp_TimersCountDown" fullname="Tests.EditMode.SimulationTests.PowerUp_TimersCountDown" methodname="PowerUp_TimersCountDown" classname="Tests.EditMode.SimulationTests" runstate="Runnable" seed="1239559056" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.000640" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1077" name="Revive_ClearsAheadAndGivesInvulnerability" fullname="Tests.EditMode.SimulationTests.Revive_ClearsAheadAndGivesInvulnerability" methodname="Revive_ClearsAheadAndGivesInvulnerability" classname="Tests.EditMode.SimulationTests" runstate="Runnable" seed="583928090" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.000515" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1078" name="Revive_LimitedByConfig" fullname="Tests.EditMode.SimulationTests.Revive_LimitedByConfig" methodname="Revive_LimitedByConfig" classname="Tests.EditMode.SimulationTests" runstate="Runnable" seed="702630626" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.000660" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1075" name="SameSeedAndInputs_SameResult" fullname="Tests.EditMode.SimulationTests.SameSeedAndInputs_SameResult" methodname="SameSeedAndInputs_SameResult" classname="Tests.EditMode.SimulationTests" runstate="Runnable" seed="1490436103" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.002421" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1069" name="Shield_AbsorbsOneHit" fullname="Tests.EditMode.SimulationTests.Shield_AbsorbsOneHit" methodname="Shield_AbsorbsOneHit" classname="Tests.EditMode.SimulationTests" runstate="Runnable" seed="1058578503" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.000499" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1058" name="SimDistance_MatchesClosedForm" fullname="Tests.EditMode.SimulationTests.SimDistance_MatchesClosedForm" methodname="SimDistance_MatchesClosedForm" classname="Tests.EditMode.SimulationTests" runstate="Runnable" seed="425872071" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.000336" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1056" name="Speed_RampsAndCaps" fullname="Tests.EditMode.SimulationTests.Speed_RampsAndCaps" methodname="Speed_RampsAndCaps" classname="Tests.EditMode.SimulationTests" runstate="Runnable" seed="539650323" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.000146" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1070" name="Stats_CountActions" fullname="Tests.EditMode.SimulationTests.Stats_CountActions" methodname="Stats_CountActions" classname="Tests.EditMode.SimulationTests" runstate="Runnable" seed="1612788377" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.000257" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1079" name="SwipeTests" fullname="Tests.EditMode.SwipeTests" classname="Tests.EditMode.SwipeTests" runstate="Runnable" testcasecount="9" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.003756" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="ParameterizedMethod" id="1084" name="Classify" fullname="Tests.EditMode.SwipeTests.Classify" classname="Tests.EditMode.SwipeTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.001239" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1080" name="Classify(100,10,Right)" fullname="Tests.EditMode.SwipeTests.Classify(100,10,Right)" methodname="Classify" classname="Tests.EditMode.SwipeTests" runstate="Runnable" seed="1013985662" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.000546" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1081" name="Classify(-100,10,Left)" fullname="Tests.EditMode.SwipeTests.Classify(-100,10,Left)" methodname="Classify" classname="Tests.EditMode.SwipeTests" runstate="Runnable" seed="1500966783" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.000096" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1082" name="Classify(10,100,Up)" fullname="Tests.EditMode.SwipeTests.Classify(10,100,Up)" methodname="Classify" classname="Tests.EditMode.SwipeTests" runstate="Runnable" seed="520186083" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.000059" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1083" name="Classify(10,-100,Down)" fullname="Tests.EditMode.SwipeTests.Classify(10,-100,Down)" methodname="Classify" classname="Tests.EditMode.SwipeTests" runstate="Runnable" seed="1189712579" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.000056" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-case id="1085" name="FiresOnceWhileFingerStillDown" fullname="Tests.EditMode.SwipeTests.FiresOnceWhileFingerStillDown" methodname="FiresOnceWhileFingerStillDown" classname="Tests.EditMode.SwipeTests" runstate="Runnable" seed="505640955" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.000601" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1089" name="InputBuffer_ConsumeClears" fullname="Tests.EditMode.SwipeTests.InputBuffer_ConsumeClears" methodname="InputBuffer_ConsumeClears" classname="Tests.EditMode.SwipeTests" runstate="Runnable" seed="1804818807" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.000211" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1088" name="InputBuffer_HoldsFor150ms" fullname="Tests.EditMode.SwipeTests.InputBuffer_HoldsFor150ms" methodname="InputBuffer_HoldsFor150ms" classname="Tests.EditMode.SwipeTests" runstate="Runnable" seed="876511443" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.000150" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1087" name="SlowDragRestartsSoALaterFlickCounts" fullname="Tests.EditMode.SwipeTests.SlowDragRestartsSoALaterFlickCounts" methodname="SlowDragRestartsSoALaterFlickCounts" classname="Tests.EditMode.SwipeTests" runstate="Runnable" seed="362544408" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.000184" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1086" name="TapIsNotASwipe" fullname="Tests.EditMode.SwipeTests.TapIsNotASwipe" methodname="TapIsNotASwipe" classname="Tests.EditMode.SwipeTests" runstate="Runnable" seed="1184535669" result="Passed" start-time="2026-10-05 20:29:42Z" end-time="2026-10-05 20:29:42Z" duration="0.000135" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[Saving results to: /home/m-abdullah/.config/unity3d/GameFactory/Urban Runner/TestResults.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>
