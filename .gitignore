@@ -1,0 +1,33 @@
+# build outputs
+build/
+tools/env.local
+# Unity
+unity/[Ll]ibrary/
+unity/[Tt]emp/
+unity/[Oo]bj/
+unity/[Bb]uild/
+unity/[Bb]uilds/
+unity/[Ll]ogs/
+unity/[Uu]ser[Ss]ettings/
+unity/*.csproj
+unity/*.sln
+unity/.vs/
+# Flutter
+app/.dart_tool/
+app/build/
+app/.flutter-plugins*
+app/android/unityLibrary/
+app/android/.gradle/
+app/android/local.properties
+app/android/key.properties
+# secrets
+google-services.json
+GoogleService-Info.plist
+*.jks
+*.keystore
+# firebase
+firebase/node_modules/
+firebase/*.log
+# release binaries are handed back, not committed
+release/**/*.apk
+release/**/*.aab

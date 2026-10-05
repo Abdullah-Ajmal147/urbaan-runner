@@ -1,0 +1,23 @@
+{
+  "name": "com.learntoflutter.flutter_embed_unity_6000_0",
+  "displayName": "Flutter Embed Unity (6000)",
+  "version": "1.4.0",
+  "unity": "6000.0",
+  "license": "MIT",
+  "licensesUrl": "https://github.com/learntoflutter/flutter_embed_unity/blob/main/flutter_embed_unity/LICENSE",
+  "documentationUrl": "https://github.com/learntoflutter/flutter_embed_unity/tree/main/flutter_embed_unity",
+  "changelogUrl": "https://github.com/learntoflutter/flutter_embed_unity/blob/main/flutter_embed_unity/CHANGELOG.md",
+  "author": {
+    "name": "James Allen",
+    "url": "https://learntoflutter.com/"
+  },
+  "contributors": [],
+  "description": "The Unity implementation of the Flutter plugin flutter_embed_unity.",
+  "samples_DISABLED": [
+    {
+      "displayName": "Example",
+      "description": "Scenes and scripts used with the Flutter example in the git repo.\n\n To run the example, add the following scenes to your build settings. \n 0: FlutterEmbedExampleScene \n 1: FlutterEmbedExampleSceneAR",
+      "path": "Samples~/Example"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+    "name": "GameFactory.Editor",
+    "rootNamespace": "GameFactory.Editor",
+    "references": ["GameFactory.Core", "FlutterEmbed.Editor", "Unity.RenderPipelines.Universal.Runtime", "Unity.RenderPipelines.Core.Runtime", "Unity.InputSystem"],
+    "includePlatforms": ["Editor"],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

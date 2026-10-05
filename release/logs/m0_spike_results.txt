@@ -1,0 +1,13 @@
+device: emulator-5554  sdk=36  abi=x86_64
+TotalTime: 3282
+WaitTime: 3286
+1 | unity renders | PASS (status: ready (unity 0.1.0); ready after 23.06 s)
+2 | touch + swipe | PASS (swipes: 4 last: down; left,right,up,down sent)
+3 | ping-pong < 100 ms | PASS (rtt: n=20/20 median=16.1ms max=34.4ms)
+4 | pause + resume | PASS
+5 | leave + return | PASS (same process, bridge alive: rtt: n=20/20 median=20.4ms max=37.2ms)
+6 | background + foreground | PASS (same process, rtt: n=20/20 median=1.9ms max=32.4ms)
+7 | rotation | PASS (no restart, still portrait, rtt: n=20/20 median=16.9ms max=33.8ms)
+           TOTAL PSS:   269777            TOTAL RSS:   405844      TOTAL SWAP (KB):        0
+8 | logcat crash scan | PASS (no crash markers)
+UR_BRIDGE lines in logcat: 339
