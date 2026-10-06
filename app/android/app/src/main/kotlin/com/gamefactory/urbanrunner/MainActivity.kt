@@ -20,10 +20,10 @@ class MainActivity : FlutterActivity() {
                 "kick" -> {
                     val unity = UnityPlayerSingleton.getInstance()
                     if (unity != null) {
+                        // Focus only. Never pause/resume here: while Unity is still starting, pause() blocks for
+                        // 2 s and leaves the engine stuck ("Timeout while trying to pause the Unity Engine").
                         unity.getFrameLayout().requestFocus()
                         unity.windowFocusChanged(true)
-                        unity.pause()
-                        unity.resume()
                     }
                     result.success(unity != null)
                 }

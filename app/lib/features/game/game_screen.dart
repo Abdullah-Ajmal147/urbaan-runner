@@ -13,6 +13,7 @@ import '../../core/log.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/widgets.dart';
 import '../../games/urban_runner/game_state.dart';
+import '../../games/urban_runner/items.dart';
 import '../../games/urban_runner/run_result.dart';
 import '../../games/urban_runner/session_payload.dart';
 import '../results/results_screen.dart';
@@ -200,7 +201,7 @@ class _GameScreenState extends State<GameScreen> {
                 onEnd: () {
                   if (_started && mounted) setState(() => _coverGone = true);
                 },
-                child: _LoadingCover(tip: _tip),
+                child: _LoadingCover(tip: _tip, image: Items.byId(state.profile.selectedCharacter).image ?? 'assets/images/mira.png'),
               ),
             ),
           if (_phase == _Phase.failed)
@@ -227,8 +228,10 @@ class _GameScreenState extends State<GameScreen> {
 
 /// "Heading to Lantern City…": shown from the tap on Play until Unity's first run frame.
 class _LoadingCover extends StatelessWidget {
-  const _LoadingCover({required this.tip});
+  const _LoadingCover({required this.tip, required this.image});
   final String tip;
+  /// The courier the player chose (full-colour render, as in the Locker).
+  final String image;
 
   @override
   Widget build(BuildContext context) {
@@ -245,7 +248,7 @@ class _LoadingCover extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(28, 24, 28, 36),
             child: Column(children: [
               const Spacer(flex: 2),
-              Expanded(flex: 5, child: Image.asset('assets/images/mira_run.png', fit: BoxFit.contain, excludeFromSemantics: true)),
+              Expanded(flex: 5, child: Image.asset(image, fit: BoxFit.contain, excludeFromSemantics: true)),
               const SizedBox(height: 24),
               const Text('Heading to Lantern City…', style: UrText.title, textAlign: TextAlign.center),
               const SizedBox(height: 18),
