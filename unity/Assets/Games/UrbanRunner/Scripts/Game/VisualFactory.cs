@@ -12,7 +12,9 @@ namespace UrbanRunner.Game
         static GameObject Part(PrimitiveType type, Transform parent, Vector3 pos, Vector3 scale, Material mat, Vector3 euler = default)
         {
             var go = GameObject.CreatePrimitive(type);
-            Object.Destroy(go.GetComponent<Collider>());
+            // Editor tools (marketing renders) build these outside play mode, where Destroy isn't allowed.
+            if (Application.isPlaying) Object.Destroy(go.GetComponent<Collider>());
+            else Object.DestroyImmediate(go.GetComponent<Collider>());
             go.transform.SetParent(parent, false);
             go.transform.localPosition = pos;
             go.transform.localScale = scale;
@@ -89,8 +91,11 @@ namespace UrbanRunner.Game
 
         public static GameObject Spark(GameAssets a, Transform parent)
         {
-            var go = Part(PrimitiveType.Sphere, parent, Vector3.zero, Vector3.one * 0.38f, a.sparkGlow);
+            var go = Part(PrimitiveType.Sphere, parent, Vector3.zero, Vector3.one * 0.34f, a.sparkGlow);
             go.name = "Spark";
+            // Halo is a child so it moves with the spark; additive, so overlapping halos simply brighten.
+            var halo = Part(PrimitiveType.Quad, go.transform, new Vector3(0, 0, -0.15f), Vector3.one * 3.2f, a.sparkHalo);
+            halo.name = "Halo";
             go.SetActive(false);
             return go;
         }
@@ -113,36 +118,11 @@ namespace UrbanRunner.Game
                     Part(PrimitiveType.Cylinder, t, new Vector3(0.2f, 0.15f, 0), new Vector3(0.55f, 0.06f, 0.55f), a.doubleGlow, new Vector3(90, 0, 0));
                     break;
             }
+            Part(PrimitiveType.Quad, t, new Vector3(0, 0.1f, -0.3f), Vector3.one * 2.2f, kind == PowerUpKind.Magnet ? a.haloMagenta : kind == PowerUpKind.Shield ? a.shieldHalo : a.haloAmber);
             t.gameObject.SetActive(false);
             return t.gameObject;
         }
 
-        /// <summary>One 20 m piece of street: three lanes, lane lines and kerbs.</summary>
-        public static GameObject GroundTile(GameAssets a, Transform parent, float length)
-        {
-            var t = Root("Ground", parent);
-            Part(PrimitiveType.Cube, t, new Vector3(0, -0.05f, length * 0.5f), new Vector3(TrackRules.LaneWidth * 3 + 1f, 0.1f, length), a.ground);
-            for (var i = 0; i < 2; i++)
-            {
-                var x = (i - 0.5f) * TrackRules.LaneWidth;
-                for (var z = 1f; z < length; z += 4f)
-                    Part(PrimitiveType.Cube, t, new Vector3(x, 0.005f, z), new Vector3(0.08f, 0.01f, 2f), a.laneLine);
-            }
-            Part(PrimitiveType.Cube, t, new Vector3(-4.4f, 0.1f, length * 0.5f), new Vector3(0.3f, 0.2f, length), a.surface);
-            Part(PrimitiveType.Cube, t, new Vector3(4.4f, 0.1f, length * 0.5f), new Vector3(0.3f, 0.2f, length), a.surface);
-            t.gameObject.SetActive(false);
-            return t.gameObject;
-        }
 
-        public static GameObject Player(GameAssets a, Transform parent)
-        {
-            var t = Root("Courier", parent);
-            var body = Root("Body", t);
-            Part(PrimitiveType.Capsule, body, new Vector3(0, 0.9f, 0), new Vector3(0.7f, 0.9f, 0.6f), a.magenta);
-            Part(PrimitiveType.Sphere, body, new Vector3(0, 1.62f, 0), Vector3.one * 0.42f, a.text);
-            Part(PrimitiveType.Cube, body, new Vector3(0, 1.05f, -0.38f), new Vector3(0.55f, 0.6f, 0.3f), a.cyan); // parcel backpack
-            Part(PrimitiveType.Cylinder, t, new Vector3(0, 0.01f, 0), new Vector3(0.9f, 0.005f, 0.9f), a.night); // blob shadow
-            return t.gameObject;
-        }
     }
 }

@@ -9,35 +9,45 @@ using UrbanRunner.Sim;
 namespace UrbanRunner.Game
 {
     /// <summary>
-    /// In-run HUD (HANDOVER §4.2: the HUD lives in Unity): distance, sparks, power-up timers, pause,
-    /// pause menu and the revive prompt. Built in code; text updates use TMP's non-allocating SetText.
+    /// In-run HUD (HANDOVER §4.2: the HUD lives in Unity), matching the approved design: big Bricolage numbers,
+    /// Phosphor icons, solid panels, the "Keep running?" card and tutorial prompts. Built in code at load;
+    /// text updates use TMP's non-allocating SetText, so the run loop doesn't allocate.
     /// </summary>
     public sealed class Hud : MonoBehaviour
     {
         static readonly Color Night = new Color32(0x0E, 0x12, 0x30, 0xFF);
-        static readonly Color Surface = new Color32(0x1A, 0x20, 0x50, 0xF0);
+        static readonly Color Deep = new Color32(0x0B, 0x0F, 0x29, 0xFF);
         static readonly Color Magenta = new Color32(0xFF, 0x3D, 0xA6, 0xFF);
+        static readonly Color MagentaShade = new Color32(0xB5, 0x19, 0x6F, 0xFF);
+        static readonly Color Ink = new Color32(0x14, 0x05, 0x1F, 0xFF);
         static readonly Color Cyan = new Color32(0x2E, 0xE6, 0xFF, 0xFF);
         static readonly Color Amber = new Color32(0xFF, 0xB5, 0x47, 0xFF);
         static readonly Color TextColor = new Color32(0xF4, 0xF6, 0xFF, 0xFF);
+        static readonly Color Muted = new Color32(0xC3, 0xC7, 0xEA, 0xFF);
         static readonly Color Success = new Color32(0x3D, 0xFF, 0xA2, 0xFF);
+        static readonly Color Danger = new Color32(0xFF, 0x8A, 0x8A, 0xFF);
+        static readonly Color CardInk = new Color32(0x4A, 0x50, 0x80, 0xFF);
 
-        public event Action PausePressed;
-        public event Action ResumePressed;
-        public event Action QuitPressed;
-        public event Action ReviveYes;
-        public event Action ReviveNo;
+        public event Action PausePressed, ResumePressed, QuitPressed, ReviveYes, ReviveNo;
 
-        TMP_FontAsset _font;
-        TextMeshProUGUI _distance, _sparks, _countdown;
-        GameObject _pauseButton, _pauseMenu, _revivePrompt, _waiting;
+        GameAssets _a;
+        Sprite _round, _ring;
+        TextMeshProUGUI _distance, _bestLine, _sparks, _countdown, _reviveDistance, _reviveCause, _reviveBest, _reviveSparks, _prompt, _promptIcon;
+        GameObject _pauseButton, _pauseMenu, _revive, _waiting, _promptCard;
+        Image _ringFill;
         readonly Image[] _timerFill = new Image[3];
         readonly GameObject[] _timerRoot = new GameObject[3];
-        int _shownDistance = -1, _shownSparks = -1, _shownCountdown = -1;
+        int _shownDistance = -1, _shownSparks = -1, _shownCountdown = -1, _shownBestDelta = int.MinValue;
+        string _shownPrompt;
 
-        public void Init(TMP_FontAsset font)
+        public int LastCountdown => _shownCountdown;
+
+        public void Init(GameAssets assets)
         {
-            _font = font;
+            _a = assets;
+            _round = MakeRoundedSprite(64, 30);
+            _ring = MakeRingSprite(128, 0.22f);
+
             var canvasGo = new GameObject("HUD", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
             canvasGo.transform.SetParent(transform, false);
             var canvas = canvasGo.GetComponent<Canvas>();
@@ -48,110 +58,215 @@ namespace UrbanRunner.Game
             scaler.referenceResolution = new Vector2(1080, 1920);
             scaler.matchWidthOrHeight = 0.5f;
             var root = canvasGo.GetComponent<RectTransform>();
-
             if (FindAnyObjectByType<EventSystem>() == null)
-            {
-                var es = new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
-                es.transform.SetParent(transform, false);
-            }
+                new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule)).transform.SetParent(transform, false);
 
             var safe = Rect(root, "Safe", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
             safe.gameObject.AddComponent<SafeArea>();
 
-            // Top bar
-            _distance = Label(safe, "Distance", new Vector2(0, 1), new Vector2(40, -40), 64, TextAlignmentOptions.TopLeft, TextColor);
-            _sparks = Label(safe, "Sparks", new Vector2(1, 1), new Vector2(-200, -40), 64, TextAlignmentOptions.TopRight, Cyan);
-            _pauseButton = Button(safe, "Pause", "II", new Vector2(1, 1), new Vector2(-60, -80), new Vector2(120, 120), Surface, () => PausePressed?.Invoke()).gameObject;
+            // Distance + best line (top-left)
+            _distance = Text(safe, "Distance", _a.displayFont, 120, TextColor, new Vector2(0, 1), new Vector2(56, -60), new Vector2(700, 140), TextAlignmentOptions.TopLeft);
+            _distance.characterSpacing = -4;
+            _bestLine = Text(safe, "BestLine", _a.font, 34, Muted, new Vector2(0, 1), new Vector2(60, -196), new Vector2(700, 50), TextAlignmentOptions.TopLeft);
 
-            // Power-up timers under the distance
-            var labels = new[] { "MAGNET", "SHIELD", "2× SPARKS" };
+            // Sparks pill + pause (top-right)
+            var pill = Panel(safe, "SparksPill", Deep, new Vector2(1, 1), new Vector2(-196, -60), new Vector2(250, 120), new Vector2(1, 1));
+            Icon(pill, Icons.Sparkle, 50, Cyan, new Vector2(0, 0.5f), new Vector2(54, 0));
+            _sparks = Text(pill, "Count", _a.displayFont, 60, TextColor, new Vector2(0, 0.5f), new Vector2(96, 0), new Vector2(150, 90), TextAlignmentOptions.Left, new Vector2(0, 0.5f));
+            var pause = Panel(safe, "Pause", Deep, new Vector2(1, 1), new Vector2(-56, -60), new Vector2(120, 120), new Vector2(1, 1));
+            Icon(pause, Icons.Pause, 54, TextColor, new Vector2(0.5f, 0.5f), Vector2.zero);
+            AddButton(pause.gameObject, () => PausePressed?.Invoke());
+            _pauseButton = pause.gameObject;
+
+            // Power-up tiles (left column)
             var colors = new[] { Magenta, Success, Amber };
+            var icons = new[] { Icons.Magnet, Icons.Shield, Icons.Lightning };
             for (var i = 0; i < 3; i++)
             {
-                var r = Rect(safe, labels[i], new Vector2(0, 1), new Vector2(0, 1), new Vector2(40, -140 - i * 70), new Vector2(300, 56));
-                r.pivot = new Vector2(0, 1);
-                Panel(r, Surface);
-                var fill = Panel(Rect(r, "Fill", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero), colors[i]);
+                var row = Rect(safe, "PowerUp" + i, new Vector2(0, 1), new Vector2(0, 1), new Vector2(56, -270 - i * 112), new Vector2(330, 92));
+                row.pivot = new Vector2(0, 1);
+                var tile = Panel(row, "Tile", colors[i], new Vector2(0, 0.5f), Vector2.zero, new Vector2(92, 92), new Vector2(0, 0.5f));
+                Icon(tile, icons[i], 50, Ink, new Vector2(0.5f, 0.5f), Vector2.zero);
+                var track = Panel(row, "Track", new Color(colors[i].r, colors[i].g, colors[i].b, 0.25f), new Vector2(0, 0.5f), new Vector2(116, 0), new Vector2(200, 18), new Vector2(0, 0.5f));
+                var fill = Panel(track, "Fill", colors[i], new Vector2(0, 0), Vector2.zero, Vector2.zero, new Vector2(0, 0.5f));
+                fill.rectTransform.anchorMax = new Vector2(1, 1);
                 fill.type = Image.Type.Filled;
                 fill.fillMethod = Image.FillMethod.Horizontal;
-                fill.sprite = WhiteSprite();
                 _timerFill[i] = fill;
-                var t = Label(r, "Label", new Vector2(0.5f, 0.5f), Vector2.zero, 30, TextAlignmentOptions.Center, Night);
-                t.rectTransform.sizeDelta = new Vector2(300, 56);
-                t.SetText(labels[i]);
-                _timerRoot[i] = r.gameObject;
-                r.gameObject.SetActive(false);
+                _timerRoot[i] = row.gameObject;
+                row.gameObject.SetActive(false);
             }
 
-            // Pause menu
-            _pauseMenu = Overlay(root, "PauseMenu");
-            var pm = _pauseMenu.GetComponent<RectTransform>();
-            Label(pm, "Title", new Vector2(0.5f, 0.62f), Vector2.zero, 96, TextAlignmentOptions.Center, TextColor).SetText("Paused");
-            Button(pm, "Resume", "Resume", new Vector2(0.5f, 0.45f), Vector2.zero, new Vector2(640, 150), Magenta, () => ResumePressed?.Invoke());
-            Button(pm, "Quit", "Quit run", new Vector2(0.5f, 0.33f), Vector2.zero, new Vector2(640, 150), Surface, () => QuitPressed?.Invoke());
-            _pauseMenu.SetActive(false);
+            // Tutorial prompt (centre card)
+            var promptCard = Panel(root, "TutorialPrompt", new Color(0.04f, 0.05f, 0.16f, 0.92f), new Vector2(0.5f, 0.62f), Vector2.zero, new Vector2(820, 300), new Vector2(0.5f, 0.5f));
+            _promptIcon = Icon(promptCard, Icons.Left, 130, Amber, new Vector2(0.5f, 0.66f), Vector2.zero);
+            _prompt = Text(promptCard, "Prompt", _a.displayFont, 72, TextColor, new Vector2(0.5f, 0.24f), Vector2.zero, new Vector2(780, 100), TextAlignmentOptions.Center, new Vector2(0.5f, 0.5f));
+            _promptCard = promptCard.gameObject;
+            _promptCard.SetActive(false);
 
-            // Revive prompt (HANDOVER §3.8)
-            _revivePrompt = Overlay(root, "RevivePrompt");
-            var rp = _revivePrompt.GetComponent<RectTransform>();
-            Label(rp, "Title", new Vector2(0.5f, 0.66f), Vector2.zero, 96, TextAlignmentOptions.Center, TextColor).SetText("Continue?");
-            _countdown = Label(rp, "Countdown", new Vector2(0.5f, 0.56f), Vector2.zero, 140, TextAlignmentOptions.Center, Amber);
-            Button(rp, "Yes", "Watch ad to continue", new Vector2(0.5f, 0.42f), Vector2.zero, new Vector2(760, 160), Magenta, () => ReviveYes?.Invoke());
-            Button(rp, "No", "No thanks", new Vector2(0.5f, 0.30f), Vector2.zero, new Vector2(760, 130), Surface, () => ReviveNo?.Invoke());
-            _revivePrompt.SetActive(false);
+            BuildPauseMenu(root);
+            BuildRevive(root);
 
-            _waiting = Overlay(root, "Waiting");
-            Label(_waiting.GetComponent<RectTransform>(), "Text", new Vector2(0.5f, 0.5f), Vector2.zero, 64, TextAlignmentOptions.Center, TextColor).SetText("Loading ad…");
+            _waiting = Overlay(root, "WaitingForAd", new Color(0.035f, 0.043f, 0.13f, 0.86f));
+            Text(_waiting.GetComponent<RectTransform>(), "Text", _a.font, 48, TextColor, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(900, 80), TextAlignmentOptions.Center, new Vector2(0.5f, 0.5f)).SetText("Loading ad…");
             _waiting.SetActive(false);
+        }
+
+        void BuildPauseMenu(RectTransform root)
+        {
+            _pauseMenu = Overlay(root, "PauseMenu", new Color(0.035f, 0.043f, 0.13f, 0.9f));
+            var pm = _pauseMenu.GetComponent<RectTransform>();
+            Text(pm, "Title", _a.displayFont, 140, TextColor, new Vector2(0.5f, 0.62f), Vector2.zero, new Vector2(900, 170), TextAlignmentOptions.Center, new Vector2(0.5f, 0.5f)).SetText("Paused");
+            PrimaryButton(pm, "Resume", "Keep running", new Vector2(0.5f, 0.46f), new Vector2(820, 170), () => ResumePressed?.Invoke());
+            TextButton(pm, "Quit", "Quit this run", new Vector2(0.5f, 0.36f), () => QuitPressed?.Invoke());
+            _pauseMenu.SetActive(false);
+        }
+
+        void BuildRevive(RectTransform root)
+        {
+            _revive = Overlay(root, "Revive", new Color(0.035f, 0.043f, 0.13f, 0.8f));
+            var rv = _revive.GetComponent<RectTransform>();
+            var chip = Panel(rv, "Cause", new Color(1f, 0.35f, 0.35f, 0.16f), new Vector2(0, 1), new Vector2(66, -180), new Vector2(620, 74), new Vector2(0, 1));
+            _reviveCause = Text(chip, "Text", _a.font, 34, Danger, new Vector2(0, 0.5f), new Vector2(26, 0), new Vector2(580, 60), TextAlignmentOptions.Left, new Vector2(0, 0.5f));
+            _reviveDistance = Text(rv, "Distance", _a.displayFont, 150, TextColor, new Vector2(0, 1), new Vector2(60, -280), new Vector2(960, 170), TextAlignmentOptions.TopLeft);
+            _reviveBest = Text(rv, "Best", _a.font, 42, Muted, new Vector2(0, 1), new Vector2(66, -460), new Vector2(960, 60), TextAlignmentOptions.TopLeft);
+
+            var card = Panel(rv, "Card", TextColor, new Vector2(0.5f, 0), new Vector2(0, 90), new Vector2(1000, 600), new Vector2(0.5f, 0));
+            var ringBack = Img(card, "RingBack", _ring, new Color32(0xE3, 0xE5, 0xF5, 0xFF), new Vector2(0, 1), new Vector2(60, -60), new Vector2(180, 180), new Vector2(0, 1));
+            _ringFill = Img(ringBack.rectTransform, "RingFill", _ring, Magenta, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(180, 180), new Vector2(0.5f, 0.5f));
+            _ringFill.type = Image.Type.Filled;
+            _ringFill.fillMethod = Image.FillMethod.Radial360;
+            _ringFill.fillOrigin = (int)Image.Origin360.Top;
+            _ringFill.fillClockwise = false;
+            _countdown = Text(ringBack.rectTransform, "Count", _a.displayFont, 76, Night, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(180, 180), TextAlignmentOptions.Center, new Vector2(0.5f, 0.5f));
+            Text(card, "Title", _a.displayFont, 80, Night, new Vector2(0, 1), new Vector2(276, -70), new Vector2(680, 100), TextAlignmentOptions.TopLeft).SetText("Keep running?");
+            _reviveSparks = Text(card, "Sub", _a.font, 40, CardInk, new Vector2(0, 1), new Vector2(278, -172), new Vector2(680, 60), TextAlignmentOptions.TopLeft);
+            PrimaryButton(card, "Yes", "Watch a short ad", new Vector2(0.5f, 0), new Vector2(900, 170), () => ReviveYes?.Invoke(), new Vector2(0, 160), Icons.Play);
+            TextButton(card, "No", "No thanks, see results", new Vector2(0.5f, 0), () => ReviveNo?.Invoke(), new Vector2(0, 60), CardInk);
+            _revive.SetActive(false);
         }
 
         public void Sync(RunSession session)
         {
             var sim = session.Sim;
             var running = session.Phase == SessionPhase.Running;
-            _pauseButton.SetActive(running && !session.Paused);
-            _pauseMenu.SetActive(running && session.Paused);
-            _revivePrompt.SetActive(session.Phase == SessionPhase.RevivePrompt);
-            _waiting.SetActive(session.Phase == SessionPhase.AwaitingAd);
+            SetActive(_pauseButton, running && !session.Paused);
+            SetActive(_pauseMenu, running && session.Paused);
+            SetActive(_revive, session.Phase == SessionPhase.RevivePrompt);
+            SetActive(_waiting, session.Phase == SessionPhase.AwaitingAd);
             if (sim == null) return;
 
             var d = (int)sim.Distance;
-            if (d != _shownDistance) { _shownDistance = d; _distance.SetText("{0} m", d); }
+            if (d != _shownDistance) { _shownDistance = d; _distance.SetText("{0}<size=40%> m</size>", d); }
+            var best = session.Start.BestDistance;
+            var delta = best > 0 ? best - d : int.MaxValue;
+            if (delta != _shownBestDelta)
+            {
+                _shownBestDelta = delta;
+                if (best <= 0) _bestLine.SetText("");
+                else if (delta > 0) _bestLine.SetText("{0} m to your best", delta);
+                else _bestLine.SetText("<color=#3DFFA2>New best!</color>");
+            }
             if (sim.Sparks != _shownSparks) { _shownSparks = sim.Sparks; _sparks.SetText("{0}", sim.Sparks); }
 
             SetTimer(0, sim.MagnetLeft, PowerUpRules.Duration(PowerUpKind.Magnet, sim.Upgrades));
             SetTimer(1, sim.ShieldLeft, PowerUpRules.Duration(PowerUpKind.Shield, sim.Upgrades));
             SetTimer(2, sim.DoubleLeft, PowerUpRules.Duration(PowerUpKind.DoubleSparks, sim.Upgrades));
 
+            var prompt = session.Tutorial != null && !session.Tutorial.Completed ? session.Tutorial.Prompt : null;
+            SetActive(_promptCard, prompt != null);
+            if (prompt != null && !ReferenceEquals(prompt, _shownPrompt))
+            {
+                _shownPrompt = prompt;
+                _prompt.SetText(prompt);
+                var req = session.Tutorial.Required;
+                _promptIcon.SetText(req == GameFactory.Core.Input.SwipeDirection.Left ? Icons.Left
+                    : req == GameFactory.Core.Input.SwipeDirection.Right ? Icons.Right
+                    : req == GameFactory.Core.Input.SwipeDirection.Up ? Icons.Up
+                    : req == GameFactory.Core.Input.SwipeDirection.Down ? Icons.Down : Icons.Check);
+                _promptIcon.color = req == GameFactory.Core.Input.SwipeDirection.None ? Success : Amber;
+            }
+
             if (session.Phase == SessionPhase.RevivePrompt)
             {
                 var c = Mathf.CeilToInt(session.PromptLeft);
-                if (c != _shownCountdown) { _shownCountdown = c; _countdown.SetText("{0}", c); }
+                if (c != _shownCountdown)
+                {
+                    _shownCountdown = c;
+                    _countdown.SetText("{0}", c);
+                    _reviveDistance.SetText("{0} m", d);
+                    _reviveSparks.SetText("Your {0} sparks stay with you.", sim.Sparks);
+                    _reviveCause.SetText(CauseText(sim.CrashedInto));
+                    if (best > 0 && best > d) _reviveBest.SetText("So close. Your best is {0} m.", best);
+                    else _reviveBest.SetText(best > 0 ? "You're past your best. Keep going!" : "");
+                }
+                _ringFill.fillAmount = session.PromptLeft / RunSession.RevivePromptSeconds;
+            }
+            else _shownCountdown = -1;
+        }
+
+        static string CauseText(Obstacle o)
+        {
+            switch (o)
+            {
+                case Obstacle.Crate: return "Tripped over a crate stack";
+                case Obstacle.Banner: return "Caught by a hanging sign";
+                case Obstacle.Van: return "Ran into a parked van";
+                case Obstacle.Cart: return "Hit by a rolling cart";
+                default: return "Bumped into a market stall";
             }
         }
+
+        static void SetActive(GameObject g, bool on) { if (g.activeSelf != on) g.SetActive(on); }
 
         void SetTimer(int i, float left, float total)
         {
             var on = left > 0f;
-            if (_timerRoot[i].activeSelf != on) _timerRoot[i].SetActive(on);
+            SetActive(_timerRoot[i], on);
             if (on) _timerFill[i].fillAmount = left / total;
         }
 
-        // ---------- tiny UI builders ----------
+        // ---------- builders ----------
 
-        static Sprite _white;
-        static Sprite WhiteSprite()
+        static Sprite MakeRoundedSprite(int size, int radius)
         {
-            if (_white == null)
-                _white = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 4, 4), new Vector2(0.5f, 0.5f));
-            return _white;
+            var t = new Texture2D(size, size, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear };
+            var px = new Color32[size * size];
+            for (var y = 0; y < size; y++)
+            for (var x = 0; x < size; x++)
+            {
+                var cx = Mathf.Clamp(x + 0.5f, radius, size - radius);
+                var cy = Mathf.Clamp(y + 0.5f, radius, size - radius);
+                var dist = Mathf.Sqrt((x + 0.5f - cx) * (x + 0.5f - cx) + (y + 0.5f - cy) * (y + 0.5f - cy));
+                var a = Mathf.Clamp01(radius - dist + 0.5f);
+                px[y * size + x] = new Color32(255, 255, 255, (byte)(a * 255));
+            }
+            t.SetPixels32(px);
+            t.Apply();
+            return Sprite.Create(t, new UnityEngine.Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 100, 0, SpriteMeshType.FullRect, new Vector4(radius, radius, radius, radius));
         }
 
-        static RectTransform Rect(RectTransform parent, string name, Vector2 anchorMin, Vector2 anchorMax, Vector2 pos, Vector2 size)
+        static Sprite MakeRingSprite(int size, float thickness)
         {
-            var go = new GameObject(name, typeof(RectTransform));
-            var r = go.GetComponent<RectTransform>();
-            r.SetParent(parent, false);
+            var t = new Texture2D(size, size, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp };
+            var px = new Color32[size * size];
+            var r = size / 2f;
+            for (var y = 0; y < size; y++)
+            for (var x = 0; x < size; x++)
+            {
+                var d = Mathf.Sqrt((x + 0.5f - r) * (x + 0.5f - r) + (y + 0.5f - r) * (y + 0.5f - r)) / r;
+                var a = Mathf.Clamp01((1f - d) * r) * Mathf.Clamp01((d - (1f - thickness)) * r);
+                px[y * size + x] = new Color32(255, 255, 255, (byte)(a * 255));
+            }
+            t.SetPixels32(px);
+            t.Apply();
+            return Sprite.Create(t, new UnityEngine.Rect(0, 0, size, size), new Vector2(0.5f, 0.5f));
+        }
+
+        static RectTransform Rect(Component parent, string name, Vector2 anchorMin, Vector2 anchorMax, Vector2 pos, Vector2 size)
+        {
+            var r = new GameObject(name, typeof(RectTransform)).GetComponent<RectTransform>();
+            r.SetParent(parent.transform, false);
             r.anchorMin = anchorMin;
             r.anchorMax = anchorMax;
             r.anchoredPosition = pos;
@@ -159,44 +274,86 @@ namespace UrbanRunner.Game
             return r;
         }
 
-        static Image Panel(RectTransform r, Color c)
+        Image Panel(Component parent, string name, Color c, Vector2 anchor, Vector2 pos, Vector2 size, Vector2 pivot)
         {
+            var r = Rect(parent, name, anchor, anchor, pos, size);
+            r.pivot = pivot;
             var img = r.gameObject.AddComponent<Image>();
+            img.sprite = _round;
+            img.type = Image.Type.Sliced;
+            img.pixelsPerUnitMultiplier = 0.9f;
             img.color = c;
             return img;
         }
 
-        TextMeshProUGUI Label(RectTransform parent, string name, Vector2 anchor, Vector2 pos, float size, TextAlignmentOptions align, Color color)
+        Image Img(Component parent, string name, Sprite s, Color c, Vector2 anchor, Vector2 pos, Vector2 size, Vector2 pivot)
         {
-            var r = Rect(parent, name, anchor, anchor, pos, new Vector2(900, size * 1.4f));
-            r.pivot = new Vector2(align == TextAlignmentOptions.TopLeft ? 0 : align == TextAlignmentOptions.TopRight ? 1 : 0.5f, align == TextAlignmentOptions.Center ? 0.5f : 1f);
+            var r = Rect(parent, name, anchor, anchor, pos, size);
+            r.pivot = pivot;
+            var img = r.gameObject.AddComponent<Image>();
+            img.sprite = s;
+            img.color = c;
+            img.raycastTarget = false;
+            return img;
+        }
+
+        TextMeshProUGUI Text(Component parent, string name, TMP_FontAsset font, float size, Color color, Vector2 anchor, Vector2 pos, Vector2 box, TextAlignmentOptions align, Vector2? pivot = null)
+        {
+            var r = Rect(parent, name, anchor, anchor, pos, box);
+            r.pivot = pivot ?? new Vector2(align == TextAlignmentOptions.TopLeft || align == TextAlignmentOptions.Left ? 0 : 0.5f, align == TextAlignmentOptions.TopLeft ? 1 : 0.5f);
             var t = r.gameObject.AddComponent<TextMeshProUGUI>();
-            if (_font != null) t.font = _font;
+            t.font = font;
             t.fontSize = size;
-            t.alignment = align;
             t.color = color;
+            t.alignment = align;
             t.raycastTarget = false;
             t.textWrappingMode = TextWrappingModes.NoWrap;
+            t.overflowMode = TextOverflowModes.Overflow;
             return t;
         }
 
-        Button Button(RectTransform parent, string name, string text, Vector2 anchor, Vector2 pos, Vector2 size, Color bg, Action onClick)
+        TextMeshProUGUI Icon(Component parent, string glyph, float size, Color color, Vector2 anchor, Vector2 pos)
         {
-            var r = Rect(parent, name, anchor, anchor, pos, size);
-            var img = Panel(r, bg);
-            var b = r.gameObject.AddComponent<Button>();
-            b.targetGraphic = img;
-            b.onClick.AddListener(() => onClick());
-            var t = Label(r, "Text", new Vector2(0.5f, 0.5f), Vector2.zero, Mathf.Min(56, size.y * 0.42f), TextAlignmentOptions.Center, TextColor);
-            t.rectTransform.sizeDelta = size;
-            t.SetText(text);
-            return b;
+            var t = Text(parent, "Icon", _a.iconFont, size, color, anchor, pos, new Vector2(size * 1.3f, size * 1.3f), TextAlignmentOptions.Center, new Vector2(0.5f, 0.5f));
+            t.SetText(glyph);
+            return t;
         }
 
-        static GameObject Overlay(RectTransform parent, string name)
+        void AddButton(GameObject go, Action onClick)
+        {
+            var b = go.AddComponent<Button>();
+            b.targetGraphic = go.GetComponent<Image>();
+            b.onClick.AddListener(() => onClick());
+        }
+
+        /// <summary>Magenta button with a darker "pressable" base, like the menus.</summary>
+        void PrimaryButton(Component parent, string name, string label, Vector2 anchor, Vector2 size, Action onClick, Vector2? pos = null, string icon = null)
+        {
+            var p = pos ?? Vector2.zero;
+            Panel(parent, name + "Base", MagentaShade, anchor, p + new Vector2(0, -16), size, new Vector2(0.5f, anchor.y == 0 ? 0 : 0.5f));
+            var face = Panel(parent, name, Magenta, anchor, p, size, new Vector2(0.5f, anchor.y == 0 ? 0 : 0.5f));
+            var text = Text(face.rectTransform, "Label", _a.displayFont, 60, Ink, new Vector2(0.5f, 0.5f), icon != null ? new Vector2(34, 0) : Vector2.zero, size, TextAlignmentOptions.Center, new Vector2(0.5f, 0.5f));
+            text.SetText(label);
+            if (icon != null) Icon(face, icon, 48, Ink, new Vector2(0.5f, 0.5f), new Vector2(-text.GetPreferredValues(label).x / 2f - 10f, 0));
+            AddButton(face.gameObject, onClick);
+        }
+
+        void TextButton(Component parent, string name, string label, Vector2 anchor, Action onClick, Vector2? pos = null, Color? color = null)
+        {
+            var r = Rect(parent, name, anchor, anchor, pos ?? Vector2.zero, new Vector2(820, 120));
+            r.pivot = new Vector2(0.5f, anchor.y == 0 ? 0 : 0.5f);
+            var hit = r.gameObject.AddComponent<Image>();
+            hit.color = new Color(0, 0, 0, 0);
+            var t = Text(r, "Label", _a.font, 46, color ?? Muted, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(820, 120), TextAlignmentOptions.Center, new Vector2(0.5f, 0.5f));
+            t.SetText(label);
+            AddButton(r.gameObject, onClick);
+        }
+
+        static GameObject Overlay(RectTransform parent, string name, Color c)
         {
             var r = Rect(parent, name, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
-            Panel(r, new Color(0.055f, 0.07f, 0.19f, 0.88f));
+            var img = r.gameObject.AddComponent<Image>();
+            img.color = c;
             return r.gameObject;
         }
     }
@@ -204,7 +361,7 @@ namespace UrbanRunner.Game
     /// <summary>Keeps HUD elements out of notches and gesture bars.</summary>
     public sealed class SafeArea : MonoBehaviour
     {
-        Rect _applied;
+        UnityEngine.Rect _applied;
 
         void Update()
         {

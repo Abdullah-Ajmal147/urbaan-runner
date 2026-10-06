@@ -77,10 +77,32 @@ namespace UrbanRunner.Sim
             _nextPowerUpZ = _rng.Range(PowerUpRules.MinSpacingM, PowerUpRules.MaxSpacingM);
         }
 
+        /// <summary>False while a tutorial places rows by hand.</summary>
+        public bool AutoGenerate { get; set; } = true;
+
         /// <summary>Generate rows until the track reaches <paramref name="z"/>.</summary>
         public void GenerateUntil(double z)
         {
+            if (!AutoGenerate) return;
             while (_prevEnd < z) EmitRow();
+        }
+
+        /// <summary>Tutorial: place one hand-made row. Returns its id.</summary>
+        public int PlaceRow(double z, Obstacle l0, Obstacle l1, Obstacle l2)
+        {
+            var row = new TrackRow { Z = z, L0 = l0, L1 = l1, L2 = l2, Tier = 1, Id = _nextId++ };
+            Rows.Push(row);
+            if (row.End > _prevEnd) _prevEnd = row.End;
+            return row.Id;
+        }
+
+        /// <summary>Start (or restart) automatic generation from <paramref name="z"/>, keeping existing rows.</summary>
+        public void ResumeAt(double z)
+        {
+            if (z > _prevEnd) _prevEnd = z;
+            _chunk = -1;
+            if (_nextPowerUpZ < _prevEnd) _nextPowerUpZ = _prevEnd + _rng.Range(PowerUpRules.MinSpacingM, PowerUpRules.MaxSpacingM);
+            AutoGenerate = true;
         }
 
         /// <summary>Drops everything that is fully behind <paramref name="z"/>.</summary>

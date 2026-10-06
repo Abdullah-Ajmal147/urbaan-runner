@@ -37,6 +37,11 @@ dependencies:
   flutter_embed_unity: 2.0.0
   flutter_embed_unity_6000_0_android: 2.0.0
   uuid: 4.6.0
+  provider: 6.1.5+1
+  shared_preferences: 2.5.5
+  audioplayers: 6.8.1
+  url_launcher: 6.3.3
+  package_info_plus: 10.2.2
 
 dev_dependencies:
   flutter_test:
@@ -60,6 +65,32 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/audio/
+
+  fonts:
+    - family: Bricolage
+      fonts:
+        - asset: assets/fonts/BricolageGrotesque-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/BricolageGrotesque-ExtraBold.ttf
+          weight: 800
+    - family: Instrument
+      fonts:
+        - asset: assets/fonts/InstrumentSans-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/InstrumentSans-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/InstrumentSans-Bold.ttf
+          weight: 700
+    - family: PhosphorBold
+      fonts:
+        - asset: assets/fonts/Phosphor-Bold.ttf
+    - family: PhosphorFill
+      fonts:
+        - asset: assets/fonts/Phosphor-Fill.ttf
 
   # To add assets to your application, add an assets section, like this:
   # assets:

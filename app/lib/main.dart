@@ -1,44 +1,42 @@
-import 'package:flutter/material.dart';
+import 'dart:async';
 
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_embed_unity/flutter_embed_unity.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+
+import 'app.dart';
+import 'core/ads/debug_ads.dart';
+import 'core/analytics/analytics.dart';
+import 'core/app_services.dart';
+import 'core/audio/ui_sounds.dart';
 import 'core/bridge/unity_bridge.dart';
 import 'core/bridge/unity_transport.dart';
-import 'features/spike/spike_screen.dart';
+import 'core/iap/store.dart';
+import 'core/remote_config/remote_config.dart';
+import 'core/storage/local_store.dart';
 
-void main() {
-  // One bridge for the whole app: Unity is loaded once and never unloaded.
-  final bridge = UnityBridge(EmbedUnityTransport());
-  runApp(SpikeApp(bridge: bridge));
-}
-
-class SpikeApp extends StatelessWidget {
-  const SpikeApp({super.key, required this.bridge});
-
-  final UnityBridge bridge;
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Urban Runner',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFFFF3DA6),
-          brightness: Brightness.dark,
-        ).copyWith(surface: const Color(0xFF0E1230)),
-      ),
-      home: Builder(
-        builder: (context) => Scaffold(
-          appBar: AppBar(title: const Text('Urban Runner — M0 spike')),
-          body: Center(
-            child: FilledButton(
-              key: const Key('open_spike'),
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute<void>(builder: (_) => SpikeScreen(bridge: bridge)),
-              ),
-              child: const Text('Open Unity spike'),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  final navigatorKey = GlobalKey<NavigatorState>();
+  final analytics = DebugAnalytics();
+  final info = await PackageInfo.fromPlatform();
+  final services = AppServices(
+    // One bridge for the whole app: Unity is loaded once and never unloaded (docs/decisions.md D8).
+    bridge: UnityBridge(EmbedUnityTransport()),
+    analytics: analytics,
+    config: RemoteConfig(UrConfig.specs, analytics: analytics),
+    ads: DebugAdsService(navigatorKey: navigatorKey),
+    store: FakeStore(),
+    sounds: UiSounds(),
+    gameView: (context, bridge) => EmbedUnity(onMessageFromUnity: bridge.transport.deliver),
+    buildVersion: '${info.version} (${info.buildNumber})',
+  );
+  runApp(UrbanRunnerApp(
+    services: services,
+    navigatorKey: navigatorKey,
+    openStore: PrefsLocalStore.open,
+    configSource: const DefaultsOnlySource(),
+  ));
 }

@@ -20,7 +20,7 @@ void main() {
     test('round-trips', () {
       final m = BridgeMessage('session.start', sessionId: 'abc', payload: {'seed': 42, 'mode': 'daily'});
       final back = BridgeMessage.decode(m.encode());
-      expect(back.v, 1);
+      expect(back.v, kBridgeVersion);
       expect(back.type, 'session.start');
       expect(back.sessionId, 'abc');
       expect(back.payload, {'seed': 42, 'mode': 'daily'});
@@ -29,14 +29,14 @@ void main() {
     test('omits sessionId when null and defaults payload', () {
       final json = jsonDecode(BridgeMessage('game.pause').encode()) as Map;
       expect(json.containsKey('sessionId'), isFalse);
-      expect(BridgeMessage.decode('{"v":1,"type":"game.pause"}').payload, isEmpty);
+      expect(BridgeMessage.decode('{"v":2,"type":"game.pause"}').payload, isEmpty);
     });
 
     test('writes decimals with a dot', () {
       expect(BridgeMessage('x', payload: {'d': 1.5}).encode(), contains('1.5'));
     });
 
-    for (final bad in ['', 'nope', '[]', '{"type":"x"}', '{"v":"1","type":"x"}', '{"v":1}', '{"v":1,"type":"x","payload":[1]}']) {
+    for (final bad in ['', 'nope', '[]', '{"type":"x"}', '{"v":"1","type":"x"}', '{"v":2}', '{"v":2,"type":"x","payload":[1]}']) {
       test('rejects malformed: $bad', () {
         expect(() => BridgeMessage.decode(bad), throwsA(isA<BridgeFormatException>()));
       });
@@ -52,7 +52,7 @@ void main() {
       bridge = UnityBridge(t);
     });
 
-    const ready = '{"v":1,"type":"unity.ready","payload":{"bridgeVersion":1,"buildVersion":"0.1.0"}}';
+    const ready = '{"v":2,"type":"unity.ready","payload":{"bridgeVersion":2,"buildVersion":"0.1.0"}}';
 
     test('refuses to send before unity.ready', () {
       expect(() => bridge.send(BridgeMessage('game.pause')), throwsStateError);
@@ -97,7 +97,7 @@ void main() {
       final got = <BridgeMessage>[];
       bridge.messages.listen(got.add);
       t.deliver('{garbage');
-      t.deliver('{"v":2,"type":"session.ended"}');
+      t.deliver('{"v":99,"type":"session.ended"}');
       await Future<void>.delayed(Duration.zero);
       expect(got, isEmpty);
       expect(logs.where((l) => l.startsWith(Log.error)), hasLength(2));
@@ -106,7 +106,7 @@ void main() {
     test('passes unknown types through for callers to ignore', () async {
       final got = <BridgeMessage>[];
       bridge.messages.listen(got.add);
-      t.deliver('{"v":1,"type":"something.new"}');
+      t.deliver('{"v":2,"type":"something.new"}');
       await Future<void>.delayed(Duration.zero);
       expect(got.single.type, 'something.new');
     });

@@ -28,6 +28,10 @@ namespace UrbanRunner.Game
         public SessionStart Start { get; private set; }
         public RunSimulation Sim { get; private set; }
         public AutoplayBot Bot { get; private set; }
+        public TutorialDirector Tutorial { get; private set; }
+        public bool TutorialCompleted { get; private set; }
+        float _tutorialTime;
+        float _tutorialBotWait;
         public bool Paused { get; private set; }
         public RunSettings Settings { get; private set; } = RunSettings.Defaults;
 
@@ -76,11 +80,15 @@ namespace UrbanRunner.Game
             Settings = s.Settings;
             Sim = new RunSimulation(_templates, s.Config, s.Upgrades, s.Seed, s.Mode);
             Bot = s.Test.Autoplay ? new AutoplayBot(Sim, s.Test.Skill, s.Seed) : null;
+            Tutorial = s.Mode == RunMode.Tutorial ? new TutorialDirector(Sim) : null;
+            TutorialCompleted = false;
+            _tutorialTime = 0f;
             Paused = false;
             _forcedCrashDone = false;
             Phase = SessionPhase.Running;
             GameLog.Write(GameLog.Game, $"session {s.SessionId} start seed={s.Seed} mode={SessionStart.ModeName(s.Mode)} autoplay={s.Test.Autoplay}");
             _router.Send("session.started", s.SessionId);
+            if (Tutorial != null) Analytics("tutorial_begin");
             Started?.Invoke(s);
             SettingsChanged?.Invoke(Settings);
         }
@@ -94,7 +102,32 @@ namespace UrbanRunner.Game
         /// <summary>Player input (swipes) during a run. Ignored while autoplay drives.</summary>
         public void Input(SwipeDirection d)
         {
-            if (Phase == SessionPhase.Running && !Paused && Bot == null) Sim.Input(d);
+            if (Phase != SessionPhase.Running || Paused) return;
+            if (Tutorial != null && !Tutorial.Completed) Tutorial.Input(d);
+            else if (Bot == null) Sim.Input(d);
+        }
+
+        /// <summary>Tutorial phase handling. Returns the dt the simulation should advance by (0 = frozen).</summary>
+        float TutorialStep(float dt)
+        {
+            _tutorialTime += dt;
+            if (Bot != null && Tutorial.Phase == TutorialPhase.WaitingForInput)
+            {
+                _tutorialBotWait += dt;
+                if (_tutorialBotWait > 0.4f) { _tutorialBotWait = 0f; Tutorial.Input(Tutorial.Required); }
+            }
+            var advance = Tutorial.Tick(dt);
+            if (Tutorial.Completed)
+            {
+                TutorialCompleted = true;
+                _router.Send("analytics.event", Start.SessionId, new JObject
+                {
+                    ["name"] = "tutorial_complete",
+                    ["params"] = new JObject { ["session_id"] = Start.SessionId, ["duration_s"] = System.Math.Round(_tutorialTime, 1) },
+                });
+                GameLog.Write(GameLog.Game, "tutorial complete");
+            }
+            return advance ? dt * TutorialDirector.SpeedFactor : 0f;
         }
 
         /// <summary>Advance by <paramref name="dt"/> game seconds; <paramref name="now"/> is a real-time clock for timeouts.</summary>
@@ -105,6 +138,11 @@ namespace UrbanRunner.Game
             {
                 case SessionPhase.Running:
                     if (Paused) return;
+                    if (Tutorial != null && !Tutorial.Completed)
+                    {
+                        Sim.Step(TutorialStep(dt));
+                        break;
+                    }
                     if (Bot != null) Sim.Input(Bot.Decide());
                     Sim.Step(dt);
                     var t = Start.Test;
@@ -217,6 +255,7 @@ namespace UrbanRunner.Game
                     ["doubleSparks"] = s.DoubleSparks,
                 },
                 ["buildVersion"] = _buildVersion,
+                ["tutorialCompleted"] = TutorialCompleted,
             };
             GameLog.Write(GameLog.Game, $"session {Start.SessionId} ended cause={payload["cause"]} distance={Sim.Distance:F0} sparks={Sim.Sparks}");
             _router.Send("session.ended", Start.SessionId, payload);

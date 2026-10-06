@@ -37,6 +37,8 @@ namespace UrbanRunner.Game
         public RunConfig Config;
         public RunSettings Settings;
         public TestMode Test;
+        /// <summary>Player's best distance so far (v2, optional): the HUD shows "x m to your best".</summary>
+        public int BestDistance;
 
         public static SessionStart Parse(string sessionId, JObject p)
         {
@@ -66,6 +68,7 @@ namespace UrbanRunner.Game
                 }.Clamped(),
                 Settings = RunSettings.Parse(p["settings"], RunSettings.Defaults),
                 Test = TestMode.Parse(p["testMode"]),
+                BestDistance = System.Math.Max(0, p.Value<int?>("bestDistance") ?? 0),
             };
         }
 

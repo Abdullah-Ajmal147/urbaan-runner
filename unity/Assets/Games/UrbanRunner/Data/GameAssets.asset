@@ -25,8 +25,69 @@ MonoBehaviour:
   vanBody: {fileID: 2100000, guid: 4ef116a1c6cf1da5b8f22d71da9007d3, type: 2}
   glass: {fileID: 2100000, guid: a8cab327c155e33caa221f59bca6fcad, type: 2}
   wood: {fileID: 2100000, guid: 389227b6cf8f8a7babb4770d9a64a548, type: 2}
+  asphalt: {fileID: 2100000, guid: 050924c43d4afee5e8e85f404b23c396, type: 2}
+  pavement: {fileID: 2100000, guid: 2470c4cfac1e8faa6a8c41057b2923b3, type: 2}
+  kerb: {fileID: 2100000, guid: 2c623049b0e53526e894e7ee5ff1f7d4, type: 2}
+  buildingToon: {fileID: 2100000, guid: 72f4e3642ee9014e7b13563c79a994d1, type: 2}
+  awningMagenta: {fileID: 2100000, guid: 8d6c077a579b9d2b49719d25178f89e6, type: 2}
+  awningCyan: {fileID: 2100000, guid: e015cf345fe08ad56ac8910d62a25e6c, type: 2}
+  awningAmber: {fileID: 2100000, guid: bf865d3003052179ba5eb08df125b819, type: 2}
+  lanternAmber: {fileID: 2100000, guid: 568c40bbf3a9126b08ab25d8fb7c55e8, type: 2}
+  lanternMagenta: {fileID: 2100000, guid: c86cfdfc76c8ee2259121af49fc19efe, type: 2}
+  lanternCyan: {fileID: 2100000, guid: c599c4274b581d0639cb6c985bcda372, type: 2}
+  lanternCap: {fileID: 2100000, guid: 11f2bb537ba2543809891c341ccc545b, type: 2}
+  neonMagenta: {fileID: 2100000, guid: 301c37ec1eefd247190d25360d85fc80, type: 2}
+  neonCyan: {fileID: 2100000, guid: 6d1f3f2d50e097382834f6380e3e0d76, type: 2}
+  neonAmber: {fileID: 2100000, guid: ae669c1f1e477e5438c6ccbe730dff14, type: 2}
+  signBack: {fileID: 2100000, guid: dcfc3c03e06becfb0bee3cbed7d723c2, type: 2}
+  cord: {fileID: 2100000, guid: b5b3b35adeff5467fae1e56148132b9f, type: 2}
+  buildings:
+  - {fileID: 919132149155446097, guid: ae383ac6a659648ad8d759409bb1d296, type: 3}
+  - {fileID: 919132149155446097, guid: 5a971e9163250958c98204a2efe01bb2, type: 3}
+  - {fileID: 919132149155446097, guid: c767f893992998e3c9b54a518e161c6b, type: 3}
+  - {fileID: 919132149155446097, guid: adddfb4fe8480d683b15991b948aaec0, type: 3}
+  - {fileID: 919132149155446097, guid: 305f1b60fa5f7440d98282f711f69d62, type: 3}
+  - {fileID: 919132149155446097, guid: 42f994fafede89491a55ccaae4600874, type: 3}
+  - {fileID: 919132149155446097, guid: 52103d4a5c77777f7975cdf345499287, type: 3}
+  - {fileID: 919132149155446097, guid: d586fc44e56fa480fa877f5d1fdd841e, type: 3}
+  - {fileID: 919132149155446097, guid: 50ccafed2892d51868f050fe2c0e5084, type: 3}
+  - {fileID: 919132149155446097, guid: 32797904a87bee82ea4f05fe6fa14388, type: 3}
+  - {fileID: 919132149155446097, guid: c5aa6e47da119e92ab1607148402bb96, type: 3}
+  - {fileID: 919132149155446097, guid: 963de4824bbcb49469a00fb8042c9fb3, type: 3}
+  - {fileID: 919132149155446097, guid: dcb82756cbaf3727e9ee8d977e8c6cc8, type: 3}
+  - {fileID: 919132149155446097, guid: 1561b1d7455a0509e93044e21c77f749, type: 3}
   sparkGlow: {fileID: 2100000, guid: 78a812f9d55f7ab1f9eebd70d4b47399, type: 2}
   magnetGlow: {fileID: 2100000, guid: 32addba6d152c91bd887958eb2d2736a, type: 2}
   shieldGlow: {fileID: 2100000, guid: 051a603b525ddf299b29c593bab69a17, type: 2}
   doubleGlow: {fileID: 2100000, guid: 28b52044394c0fa9498e49a66f5b23cc, type: 2}
-  font: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  haloAmber: {fileID: 2100000, guid: 917147c970802a60588f3b421a6e46e5, type: 2}
+  haloMagenta: {fileID: 2100000, guid: 4b80d5984c535700cae900322d93486d, type: 2}
+  haloCyan: {fileID: 2100000, guid: dda4b8e937cc2cff2a1d40c58ddeb050, type: 2}
+  streakAmber: {fileID: 2100000, guid: aed3946d89c1edadb94299838c64d4fa, type: 2}
+  streakMagenta: {fileID: 2100000, guid: f321a04508572bdac854c7a7531483c0, type: 2}
+  streakCyan: {fileID: 2100000, guid: e27ed248be440c2209cd9349d21b47fa, type: 2}
+  sparkHalo: {fileID: 2100000, guid: 2f77988eb1e449d4e913473bd33e0496, type: 2}
+  shieldHalo: {fileID: 2100000, guid: f550021dfb76e1e03a007b4757331afb, type: 2}
+  blobShadow: {fileID: 2100000, guid: 05d3ce164a1cac4f1959f89feaeb33b4, type: 2}
+  courierModel: {fileID: 919132149155446097, guid: a0a9efb01717fad2c9b9af27489236f0, type: 3}
+  runClip: {fileID: 4188298191382927259, guid: d3dd8dda650a7a17f91b1c6fe7789ab0, type: 3}
+  jumpClip: {fileID: -8630955994762890147, guid: db382381b131b340386e3d814cd9b712, type: 3}
+  idleClip: {fileID: 2910742486769232160, guid: e7c38f23626b4a93e91fa7bc4794adbe, type: 3}
+  courierMira: {fileID: 2100000, guid: c8d359e561a932f92a07e436435784e1, type: 2}
+  courierDex: {fileID: 2100000, guid: 2507891f7f521d27187f15f5dc32e2dc, type: 2}
+  courierJuno: {fileID: 2100000, guid: a6ff7923d7cbf3811b6b3634cf16b1f3, type: 2}
+  music: {fileID: 8300000, guid: c5641c463fa251181bb15781199dcc9f, type: 3}
+  sfxSpark: {fileID: 8300000, guid: a1b8ccc240a235eae9b4b0790717ca31, type: 3}
+  sfxLane: {fileID: 8300000, guid: 0c9777667e95e342bb4700412974c19a, type: 3}
+  sfxJump: {fileID: 8300000, guid: c00f29b9771c2824f9388e23fd42670b, type: 3}
+  sfxSlide: {fileID: 8300000, guid: cdd88a53e394450258d3b80640b2b7d5, type: 3}
+  sfxLand: {fileID: 8300000, guid: d40b86cbec755b8ecb7c53e99b8546f9, type: 3}
+  sfxCrash: {fileID: 8300000, guid: 9b368f742ebf61e68a01f9880edb3ff1, type: 3}
+  sfxPowerUp: {fileID: 8300000, guid: 5959a79d3f2348e1c8a0b94510afc45a, type: 3}
+  sfxShieldBreak: {fileID: 8300000, guid: 7e2d909cc7bc2b38e9f1368578fe1b2b, type: 3}
+  sfxRevive: {fileID: 8300000, guid: 0050798ab49abb79a9e18fb16d376a9d, type: 3}
+  sfxCountdown: {fileID: 8300000, guid: ed3d86b83ffc8bfe181876adc17a3ca8, type: 3}
+  sfxUiTap: {fileID: 8300000, guid: 44cb07b542eb44c698f5ed1a33d9981d, type: 3}
+  font: {fileID: 11400000, guid: 16c608c04c63d0704baa7d35d9273ed4, type: 2}
+  displayFont: {fileID: 11400000, guid: fd235189e4aaabb078a5989e1bf3e61b, type: 2}
+  iconFont: {fileID: 11400000, guid: 370428e3ec8111f0a80fb15757d77ba4, type: 2}

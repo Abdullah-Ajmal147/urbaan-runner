@@ -54,6 +54,10 @@ namespace UrbanRunner.Sim
         public bool Airborne => _jumpT >= 0f;
         public bool Sliding => _slideT >= 0f;
         public float SlideProgress => Sliding ? _slideT / TrackRules.SlideDuration : 0f;
+        public float JumpProgress => Airborne ? _jumpT / TrackRules.JumpDuration : 0f;
+
+        /// <summary>Tutorial: obstacles never hurt (HANDOVER §3.9 "the player can't lose").</summary>
+        public bool GodMode { get; set; }
 
         public int Sparks { get; private set; }
         public RunStats Stats;
@@ -195,7 +199,7 @@ namespace UrbanRunner.Sim
                     if (Math.Abs(X - TrackRules.LaneX(lane)) >= TrackRules.PlayerHalfWidth + TrackRules.ObstacleHalfWidth) continue;
                     if (!Hits(o)) continue;
 
-                    if (InvulnerableLeft > 0f) continue;
+                    if (InvulnerableLeft > 0f || GodMode) continue;
                     if (ShieldLeft > 0f)
                     {
                         ShieldLeft = 0f;

@@ -126,9 +126,17 @@ namespace GameFactory.Editor
                 asset = UniversalRenderPipelineAsset.Create(renderer);
                 AssetDatabase.CreateAsset(asset, UrpAssetPath);
             }
+            // Post-processing (bloom on neon) needs the renderer's PostProcessData.
+            var rendererData = AssetDatabase.LoadAssetAtPath<UniversalRendererData>(UrpRendererPath);
+            if (rendererData != null && rendererData.postProcessData == null)
+            {
+                rendererData.postProcessData = AssetDatabase.LoadAssetAtPath<PostProcessData>(
+                    "Packages/com.unity.render-pipelines.universal/Runtime/Data/PostProcessData.asset");
+                EditorUtility.SetDirty(rendererData);
+            }
             asset.supportsHDR = false;
             asset.msaaSampleCount = 1;
-            asset.renderScale = 1f;
+            asset.renderScale = 0.8f; // standard mobile trade-off; UI (overlay canvas) stays at full resolution
             asset.shadowDistance = 0f;
             asset.supportsCameraDepthTexture = false;
             asset.supportsCameraOpaqueTexture = false;

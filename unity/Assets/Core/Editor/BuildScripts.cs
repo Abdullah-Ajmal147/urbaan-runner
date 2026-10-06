@@ -49,6 +49,9 @@ public static class BuildScripts
         if (!File.Exists(exported)) throw new Exception("export produced no " + exported);
     });
 
+    /// <summary>For game-specific batch entry points: same exit-code and UR_BATCH_EXIT handling as the built-in ones.</summary>
+    public static void RunBatch(Action action) => Run(action);
+
     static void Run(Action action)
     {
         try
@@ -68,7 +71,7 @@ public static class BuildScripts
         }
     }
 
-    static string Arg(string name)
+    public static string Arg(string name)
     {
         var args = Environment.GetCommandLineArgs();
         var i = Array.IndexOf(args, name);

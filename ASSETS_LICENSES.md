@@ -10,3 +10,6 @@ Every external file in the app or the Unity project is listed here (HANDOVER §3
 | uuid 4.6.0 | pub.dev | MIT | session IDs (Flutter) |
 | TextMesh Pro Essential Resources (shaders, settings) | Unity `com.unity.ugui` 2.0.0 package | Unity Companion License | `unity/Assets/TextMesh Pro/` |
 | Liberation Sans font (TMP default, in-run HUD until M2) | bundled with TMP Essential Resources | SIL Open Font License 1.1 (`unity/Assets/TextMesh Pro/Fonts/LiberationSans - OFL.txt`) | `unity/Assets/TextMesh Pro/Fonts/` |
+| Kenney "Animated Characters: Protagonists" 1.1 (characterMedium model, run/jump/idle animations, base skins) | https://kenney.nl/assets/animated-characters-protagonists | CC0 1.0 (`unity/Assets/Games/UrbanRunner/Art/Characters/Kenney/License.txt`) | courier model; Mira/Dex/Juno skins are our own repaint (`SkinBaker`) |
+| Phosphor Icons 2.1.1 (@phosphor-icons/core) | https://github.com/phosphor-icons/core | MIT | menu icons (design mockups, then the Flutter shell) |
+| Bricolage Grotesque, Instrument Sans | Google Fonts | SIL Open Font License 1.1 | proposed menu typefaces (to be bundled, never fetched at runtime) |

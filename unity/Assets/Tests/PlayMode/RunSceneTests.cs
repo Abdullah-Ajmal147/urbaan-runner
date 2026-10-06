@@ -102,7 +102,7 @@ namespace Tests.PlayMode
 
             var ended = Sent("session.ended").Single();
             Assert.AreEqual("crash-1", (string)ended["sessionId"]);
-            Assert.AreEqual(1, (int)ended["v"]);
+            Assert.AreEqual(BridgeEnvelope.CurrentVersion, (int)ended["v"]);
             var p = (JObject)ended["payload"];
             Assert.AreEqual("obstacle", (string)p["cause"]);
             Assert.AreEqual("normal", (string)p["mode"]);
@@ -137,6 +137,44 @@ namespace Tests.PlayMode
             var p = Sent("session.ended").Single()["payload"];
             Assert.AreEqual("test", (string)p["cause"]);
             Assert.AreEqual(1, (int)p["revivesUsed"]);
+        }
+
+        [UnityTest]
+        public IEnumerator RunLoop_MakesNoPerFrameAllocations()
+        {
+            Send("session.start", "gc-1", Start(new JObject { ["autoplay"] = true, ["skill"] = 1.0 }));
+            yield return new WaitForSeconds(4f); // warm-up: pools, TMP glyphs, first sparks and power-up
+            long total = 0;
+            var worst = 0L;
+            for (var i = 0; i < 300; i++)
+            {
+                yield return null;
+                total += _root.LastUpdateAllocBytes;
+                if (_root.LastUpdateAllocBytes > worst) worst = _root.LastUpdateAllocBytes;
+            }
+            Assert.AreEqual(0, total, $"run loop allocated {total} B over 300 frames (worst frame {worst} B)");
+            _root.Session.Quit();
+        }
+
+        [UnityTest]
+        public IEnumerator Tutorial_CompletesAndFlowsIntoANormalRun()
+        {
+            Time.timeScale = 3f;
+            var payload = Start(new JObject { ["autoplay"] = true, ["skill"] = 1.0, ["endAfterSeconds"] = 70 });
+            payload["mode"] = "tutorial";
+            Send("session.start", "tut-1", payload);
+            Assert.IsNotNull(_root.Session.Tutorial);
+            yield return WaitFor(() => _root.Session.TutorialCompleted, 90);
+            Assert.IsTrue(_root.Session.TutorialCompleted, "tutorial did not complete");
+            var names = Sent("analytics.event").Select(m => (string)m["payload"]["name"]).ToArray();
+            CollectionAssert.Contains(names, "tutorial_begin");
+            CollectionAssert.Contains(names, "tutorial_complete");
+            Assert.IsFalse(_root.Session.Sim.GodMode);
+            yield return WaitFor(() => Sent("session.ended").Length > 0, 60);
+            var p = Sent("session.ended").Single()["payload"];
+            Assert.AreEqual("tutorial", (string)p["mode"]);
+            Assert.IsTrue((bool)p["tutorialCompleted"]);
+            Assert.AreEqual("test", (string)p["cause"], "bot crashed after the tutorial");
         }
 
         [UnityTest]

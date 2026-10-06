@@ -14,14 +14,11 @@ namespace UrbanRunner.Game
         const int RowSlots = 128;
         const int SparkSlots = 512;
         const int PowerUpSlots = 16;
-        const float GroundTileLength = 20f;
-        const int GroundTiles = 12;
 
         GameAssets _assets;
         ObjectPool<GameObject>[] _obstaclePools;
         ObjectPool<GameObject> _sparkPool;
         ObjectPool<GameObject>[] _powerUpPools;
-        readonly GameObject[] _ground = new GameObject[GroundTiles];
 
         readonly int[] _rowSlotId = new int[RowSlots];
         readonly GameObject[,] _rowSlot = new GameObject[RowSlots, TrackRules.LaneCount];
@@ -60,11 +57,6 @@ namespace UrbanRunner.Game
             {
                 var k = (PowerUpKind)i;
                 _powerUpPools[i] = NewPool(() => VisualFactory.PowerUp(k, _assets, transform), 3);
-            }
-            for (var i = 0; i < GroundTiles; i++)
-            {
-                _ground[i] = VisualFactory.GroundTile(_assets, transform, GroundTileLength);
-                _ground[i].SetActive(true);
             }
             ResetSlots();
         }
@@ -111,7 +103,6 @@ namespace UrbanRunner.Game
             SyncRows(sim, origin);
             SyncSparks(sim, origin, time);
             SyncPowerUps(sim, origin, time);
-            SyncGround(sim, origin);
         }
 
         void SyncRows(RunSimulation sim, FloatingOrigin origin)
@@ -236,12 +227,5 @@ namespace UrbanRunner.Game
             }
         }
 
-        void SyncGround(RunSimulation sim, FloatingOrigin origin)
-        {
-            // Tiles snap to a 20 m grid in absolute space, starting a little behind the player.
-            var first = System.Math.Floor((sim.Distance - 20.0) / GroundTileLength) * GroundTileLength;
-            for (var i = 0; i < GroundTiles; i++)
-                _ground[i].transform.localPosition = new Vector3(0, 0, origin.ToWorld(first + i * GroundTileLength));
-        }
     }
 }
