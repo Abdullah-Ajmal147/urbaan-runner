@@ -29,7 +29,12 @@ namespace UrbanRunner.Editor
             ("t1_slalom", 1, 1f, "B../2 ..B/2*"),
             ("t1_gate", 1, 1f, "B.B/2*"),
             ("t1_mixed", 1, 1f, ".J./2 .S./2*"),
+            ("t1_tram_ramp", 1, 1.2f, ".R./2*"),
+            ("t1_tram_side", 1, 1f, "T.R/2*"),
             // Tier 2 (500–1,500 m): combinations and tighter gaps.
+            ("t2_tram_line", 2, 1.2f, "TRT/2 .T./1*"),
+            ("t2_roof_hop", 2, 1f, "R.T/2* .J./1"),
+            ("t2_trams_banner", 2, 1f, "TSR/2*"),
             ("t2_van_crate", 2, 1f, "V.J/2* .B./1"),
             ("t2_zigzag", 2, 1f, "BB./2 .BB/1* B.B/1"),
             ("t2_jump_slide", 2, 1f, "JJJ/2 SSS/1*"),
@@ -46,6 +51,7 @@ namespace UrbanRunner.Editor
             ("t3_gauntlet", 3, 1f, "BSB/2 JBC/1 SB./1*"),
             ("t3_triple_mix", 3, 1f, "JSC/2* CBJ/1"),
             ("t3_vans_cart", 3, 1f, "VV./2 .CV/1* B.J/1"),
+            ("t3_tram_maze", 3, 1f, "RTT/2 T.C/1* .TR/1"),
             ("t3_long", 3, 0.7f, "B.C/1 .BB/1* J.V/1 SSB/1 .CB/1*"),
         };
 

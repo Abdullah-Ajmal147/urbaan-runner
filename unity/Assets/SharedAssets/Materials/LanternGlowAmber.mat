@@ -34,9 +34,10 @@ Material:
     - _RampThreshold: 0.1
     - _RimPower: 3
     - _RimStrength: 0
+    - _UseVertexColor: 0
     m_Colors:
     - _BaseColor: {r: 1, g: 0.70980394, b: 0.2784314, a: 1}
-    - _EmissionColor: {r: 1.1, g: 0.68200004, b: 0.22000001, a: 1.1}
+    - _EmissionColor: {r: 1, g: 0.70980394, b: 0.2784314, a: 1}
     - _OutlineColor: {r: 0.049999982, g: 0.04, b: 0.11999995, a: 1}
     - _RimColor: {r: 1, g: 0.54999995, b: 0.85, a: 1}
     - _ShadowTint: {r: 0.45, g: 0.41999996, b: 0.75, a: 1}

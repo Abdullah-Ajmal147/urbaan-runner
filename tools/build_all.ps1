@@ -11,7 +11,10 @@ function Export-Unity([string]$kind) {
   Write-Host "== export unityLibrary ($kind)"
   $a = @('-nographics', '-quit', '-buildTarget', 'Android', '-executeMethod', 'BuildScripts.ExportForFlutter', '-exportPath', "`"$ROOT/app/android/unityLibrary`"")
   if ($kind -eq 'emulator') { $a += '-emulator' }
-  if ((Invoke-Unity "export_$kind" $a) -ne 0) { throw "Unity export ($kind) failed; see build/logs/export_$kind.log" }
+  $env:UR_SUCCESS_MARKER = 'Building project for Flutter succeeded'
+  $rc = Invoke-Unity "export_$kind" $a
+  Remove-Item Env:UR_SUCCESS_MARKER
+  if ($rc -ne 0) { throw "Unity export ($kind) failed; see build/logs/export_$kind.log" }
 }
 
 function Invoke-Flutter([string]$log, [string[]]$fargs) {

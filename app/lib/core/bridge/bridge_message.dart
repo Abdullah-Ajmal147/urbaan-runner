@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 /// Bridge contract version (docs/bridge-contract.md). Bump on any contract change, on both sides.
-const int kBridgeVersion = 2; // v2: session.start.bestDistance, session.ended.tutorialCompleted
+const int kBridgeVersion = 3; // v2: bestDistance, tutorialCompleted · v3: session.start.hunt, session.ended.huntFound
 
 class BridgeFormatException implements Exception {
   BridgeFormatException(this.message);

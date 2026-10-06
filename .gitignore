@@ -31,3 +31,8 @@ firebase/*.log
 # release binaries are handed back, not committed
 release/**/*.apk
 release/**/*.aab
+firebase/firebase-debug.log
+firebase/*-debug.log
+unity/.utmp/
+release/test-builds/
+unity/Assets/InitTestScene*

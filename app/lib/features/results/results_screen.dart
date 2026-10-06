@@ -9,6 +9,7 @@ import '../../core/app_services.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/widgets.dart';
 import '../../games/urban_runner/game_state.dart';
+import '../home/hunt_card.dart';
 import '../../games/urban_runner/items.dart';
 import '../../games/urban_runner/missions.dart';
 import '../game/game_screen.dart';
@@ -47,11 +48,22 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (r.newBest) {
         s.sounds.newBest();
-        if (!MotionScope.reduced(context)) _confetti.repeat();
+        if (!MotionScope.reduced(context)) _celebrate();
       } else {
         s.sounds.results();
       }
     });
+  }
+
+  /// Two bursts of confetti, then stop (an endless loop would redraw Results forever).
+  Future<void> _celebrate() async {
+    try {
+      for (var i = 0; i < 2 && mounted; i++) {
+        await _confetti.forward(from: 0);
+      }
+    } on TickerCanceled {
+      // left the screen mid-burst
+    }
   }
 
   @override
@@ -165,7 +177,10 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
                   Text(
                     best && r.previousBest > 0
                         ? '${distance - r.previousBest} m further than your old best.'
-                        : 'Best ${CountUp.format(math.max(r.previousBest, distance))} m · ${res.durationS ~/ 60} min ${(res.durationS % 60).round()} s',
+                        : res.mode == 'tutorial'
+                            // Lessons never count as a best (negative test: the screen claimed one anyway).
+                            ? 'Lesson done · ${_duration(res.durationS)}'
+                            : 'Best ${CountUp.format(math.max(r.previousBest, distance))} m · ${_duration(res.durationS)}',
                     style: UrText.label.copyWith(color: ink.withValues(alpha: .8)),
                   ),
                 ])),
@@ -179,6 +194,20 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
                   _ReceiptRow(icon: PhosphorIcons.sparkle(PhosphorIconsStyle.fill), color: UrColors.cyan, label: _doubled ? 'Sparks collected ×2' : 'Sparks collected', value: r.sparksCredited * (_doubled ? 2 : 1)),
                   for (final id in r.missionsCompleted)
                     _ReceiptRow(icon: PhosphorIcons.checkCircle(PhosphorIconsStyle.fill), color: UrColors.success, label: 'Mission ready · ${MissionPool.byId(id).title}', value: null, trailing: 'Claim in Missions'),
+                  if (r.huntFoundNow)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: Row(children: [
+                        Expanded(
+                          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                            Text(r.huntPrize > 0 ? 'Lantern Hunt complete!' : 'Lantern found · ${r.huntFoundToday} of 5', style: UrText.label.copyWith(color: UrColors.amber)),
+                            const SizedBox(height: 6),
+                            HuntLanterns(found: r.huntFoundToday, size: 18, justFound: r.huntFoundToday - 1),
+                          ]),
+                        ),
+                        if (r.huntPrize > 0) SparksAmount(value: r.huntPrize, size: 18),
+                      ]),
+                    ),
                   if (r.levelAfter > r.levelBefore)
                     _ReceiptRow(icon: PhosphorIcons.arrowFatUp(PhosphorIconsStyle.fill), color: UrColors.amber, label: 'Level ${r.levelAfter} reached', value: r.levelUpSparks),
                   for (final id in r.unlocked)
@@ -313,4 +342,11 @@ class _ConfettiPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_ConfettiPainter old) => old.t != t;
+}
+
+/// "28 s", "1 min 05 s": never "0 min 28 s".
+String _duration(double seconds) {
+  final total = seconds.isFinite && seconds > 0 ? seconds.round() : 0;
+  final m = total ~/ 60, sec = total % 60;
+  return m == 0 ? '$sec s' : '$m min ${sec.toString().padLeft(2, '0')} s';
 }

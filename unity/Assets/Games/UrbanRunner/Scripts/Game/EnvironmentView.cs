@@ -1,3 +1,4 @@
+using GameFactory.Core.Rendering;
 using GameFactory.Core.World;
 using UnityEngine;
 using UrbanRunner.Sim;
@@ -68,11 +69,14 @@ namespace UrbanRunner.Game
             Prim(PrimitiveType.Cube, seg, new Vector3(6.2f, 0.08f, L / 2), new Vector3(3.2f, 0.16f, L), _a.pavement);
             Prim(PrimitiveType.Cube, seg, new Vector3(-4.65f, 0.09f, L / 2), new Vector3(0.18f, 0.18f, L), _a.kerb);
             Prim(PrimitiveType.Cube, seg, new Vector3(4.65f, 0.09f, L / 2), new Vector3(0.18f, 0.18f, L), _a.kerb);
-            for (var z = 1f; z < L; z += 4.33f)
+            // Tram rails along every lane: Lantern City runs on trams.
+            for (var lane = 0; lane < TrackRules.LaneCount; lane++)
             {
-                Quad(seg, new Vector3(-TrackRules.LaneWidth / 2, 0.01f, z), new Vector2(0.1f, 2f), _a.laneLine, new Vector3(90, 0, 0));
-                Quad(seg, new Vector3(TrackRules.LaneWidth / 2, 0.01f, z), new Vector2(0.1f, 2f), _a.laneLine, new Vector3(90, 0, 0));
+                var x = TrackRules.LaneX(lane);
+                Prim(PrimitiveType.Cube, seg, new Vector3(x - 0.72f, 0.02f, L / 2), new Vector3(0.09f, 0.04f, L), _a.rail);
+                Prim(PrimitiveType.Cube, seg, new Vector3(x + 0.72f, 0.02f, L / 2), new Vector3(0.09f, 0.04f, L), _a.rail);
             }
+            // The rails mark the lanes on their own (no painted dashes or ties: too busy).
 
             // Buildings on both sides fill the segment.
             foreach (var side in new[] { -1, 1 })
@@ -84,9 +88,10 @@ namespace UrbanRunner.Game
                     var b = Instantiate(prefab, seg);
                     var bounds = new Bounds();
                     var first = true;
+                    var paint = _a.buildingPaints != null && _a.buildingPaints.Length > 0 ? _a.buildingPaints[_rng.Next(_a.buildingPaints.Length)] : _a.buildingToon;
                     foreach (var r in b.GetComponentsInChildren<Renderer>())
                     {
-                        r.sharedMaterial = _a.buildingToon;
+                        r.sharedMaterial = paint;
                         r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
                         if (first) { bounds = r.bounds; first = false; } else bounds.Encapsulate(r.bounds);
                     }
@@ -109,11 +114,13 @@ namespace UrbanRunner.Game
             var signSide = index % 2 == 0 ? -1 : 1;
             NeonSign(seg, new Vector3(signSide * 7.55f, 5.2f, 12f), signSide < 0 ? 90 : -90, index);
 
-            // Lantern string across the street.
+            // Lantern string across the street, and the warm pool of light it throws on the road.
             LanternString(seg, 20f, index);
+            Quad(seg, new Vector3(0, 0.03f, 20f), new Vector2(10f, 8f), _a.haloAmber, new Vector3(90, 0, 0));
 
-            // Merge the segment's static parts into batches (far fewer draw calls); the root can still move.
-            StaticBatchingUtility.Combine(seg.gameObject);
+            // Merge the segment into one mesh with a sub-mesh per material: ~15 draws instead of ~150. The root
+            // still moves freely (static batching kept one draw per part on GLES, see D19).
+            MeshMerge.CombineByMaterial(seg.gameObject, "Segment" + index + "Mesh");
             return seg;
         }
 
@@ -156,7 +163,7 @@ namespace UrbanRunner.Game
 
         void LanternString(Transform parent, float z, int seed)
         {
-            const float halfW = 6.6f, top = 6.4f, sag = 1.1f;
+            const float halfW = 6.6f, top = 9.8f, sag = 1.3f; // above the chase camera, even on a roof (D27)
             const int n = 9;
             var lanterns = new[] { _a.lanternAmber, _a.lanternMagenta, _a.lanternCyan };
             var halos = new[] { _a.haloAmber, _a.haloMagenta, _a.haloCyan };
@@ -170,18 +177,20 @@ namespace UrbanRunner.Game
                 Prim(PrimitiveType.Cylinder, lantern.transform, new Vector3(0, 0.55f, 0), new Vector3(0.5f, 0.08f, 0.5f), _a.lanternCap);
                 Quad(parent, new Vector3(x, y - 0.35f, z - 0.05f), new Vector2(1.9f, 1.9f), halos[k], Vector3.zero);
             }
-            var cord = new GameObject("Cord").AddComponent<LineRenderer>();
-            cord.transform.SetParent(parent, false);
-            cord.useWorldSpace = false;
-            cord.positionCount = 16;
-            for (var i = 0; i < 16; i++)
+            // The cord: thin pieces along the sag curve, merged with the rest of the segment (no extra draw).
+            const int pieces = 12;
+            for (var i = 0; i < pieces; i++)
             {
-                var t = i / 15f;
-                cord.SetPosition(i, new Vector3(Mathf.Lerp(-halfW - 0.4f, halfW + 0.4f, t), top - sag * 4f * t * (1 - t), z));
+                float X(float t) => Mathf.Lerp(-halfW - 0.4f, halfW + 0.4f, t);
+                float Y(float t) => top - sag * 4f * t * (1 - t);
+                var t0 = i / (float)pieces;
+                var t1 = (i + 1) / (float)pieces;
+                var p0 = new Vector3(X(t0), Y(t0), z);
+                var p1 = new Vector3(X(t1), Y(t1), z);
+                var d = p1 - p0;
+                Prim(PrimitiveType.Cube, parent, (p0 + p1) * 0.5f, new Vector3(d.magnitude, 0.04f, 0.04f), _a.cord,
+                    new Vector3(0, 0, Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg));
             }
-            cord.widthMultiplier = 0.035f;
-            cord.sharedMaterial = _a.cord;
-            cord.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
         }
     }
 }

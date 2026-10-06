@@ -56,6 +56,24 @@ MonoBehaviour:
   - {fileID: 919132149155446097, guid: 963de4824bbcb49469a00fb8042c9fb3, type: 3}
   - {fileID: 919132149155446097, guid: dcb82756cbaf3727e9ee8d977e8c6cc8, type: 3}
   - {fileID: 919132149155446097, guid: 1561b1d7455a0509e93044e21c77f749, type: 3}
+  buildingPaints:
+  - {fileID: 2100000, guid: f1136ca26b83e65909d0cc8cf953aafd, type: 2}
+  - {fileID: 2100000, guid: e0242e3ccdbee577da7e01afc714a5cc, type: 2}
+  - {fileID: 2100000, guid: 29d0cf32c061c1133b5fbe0f29760d4c, type: 2}
+  - {fileID: 2100000, guid: 90f7d02830498c310be4e91ec5eb4df7, type: 2}
+  - {fileID: 2100000, guid: d5120de451f2c19168348d6feb61ac4f, type: 2}
+  - {fileID: 2100000, guid: 8841892608ab5eeeab44c8dbf682f868, type: 2}
+  - {fileID: 2100000, guid: 7a18dce086b8baa3ab078439d6f8d482, type: 2}
+  tramPaints:
+  - {fileID: 2100000, guid: 7856f73f5671e26e99b3445cc87f5399, type: 2}
+  - {fileID: 2100000, guid: 5b1ed428c56a50635bbdcac113fe8e7d, type: 2}
+  - {fileID: 2100000, guid: 5699e2812c32128478f4aa952cbc4c0f, type: 2}
+  - {fileID: 2100000, guid: 7a24b23f6f5048588a6e4bee64b35138, type: 2}
+  tramCream: {fileID: 2100000, guid: 444ca0658bb3e9c70851db4961428d2d, type: 2}
+  tramRoof: {fileID: 2100000, guid: 8c1cf4400a9729bb2a0b9593a00cec0a, type: 2}
+  tramWindow: {fileID: 2100000, guid: 72e7a8e34e6e80d7cae33356e122e3e0, type: 2}
+  rail: {fileID: 2100000, guid: a7f87292fdc007304847fa803de54f8d, type: 2}
+  sky: {fileID: 2100000, guid: 16c8057d67472df169f5fbe84d6fa3fa, type: 2}
   sparkGlow: {fileID: 2100000, guid: 78a812f9d55f7ab1f9eebd70d4b47399, type: 2}
   magnetGlow: {fileID: 2100000, guid: 32addba6d152c91bd887958eb2d2736a, type: 2}
   shieldGlow: {fileID: 2100000, guid: 051a603b525ddf299b29c593bab69a17, type: 2}
@@ -68,6 +86,26 @@ MonoBehaviour:
   streakCyan: {fileID: 2100000, guid: e27ed248be440c2209cd9349d21b47fa, type: 2}
   sparkHalo: {fileID: 2100000, guid: 2f77988eb1e449d4e913473bd33e0496, type: 2}
   shieldHalo: {fileID: 2100000, guid: f550021dfb76e1e03a007b4757331afb, type: 2}
+  trailGlow: {fileID: 2100000, guid: 7166ff359ce081014a5f09c4b7b5411e, type: 2}
+  kiteToon: {fileID: 2100000, guid: ecf046c3ae007fd4eaf8ac9d078435ae, type: 2}
+  huntBodies:
+  - {fileID: 2100000, guid: 33568eb31c46d48edbc1ba3f1a6ce16f, type: 2}
+  - {fileID: 2100000, guid: bb3cd73791a145735848362c6396eaf7, type: 2}
+  - {fileID: 2100000, guid: 223cb932ee368374a95a47dabadb6040, type: 2}
+  - {fileID: 2100000, guid: 0679a5c3f734448e89c088f368504311, type: 2}
+  - {fileID: 2100000, guid: 0b09e1e144b669a11972899d1259fabb, type: 2}
+  huntHalos:
+  - {fileID: 2100000, guid: 08b46ce9387ad333eb94789cc6d34156, type: 2}
+  - {fileID: 2100000, guid: 1a92515e36a9daca39cb480e867a2727, type: 2}
+  - {fileID: 2100000, guid: 5d6c5bea5a8e69351bd7df2e7d66a4d5, type: 2}
+  - {fileID: 2100000, guid: e8a11c68505c6043f9798ee279ca2f66, type: 2}
+  - {fileID: 2100000, guid: 625ca17518b0c93b9b35c8f70f01dc9b, type: 2}
+  huntBeams:
+  - {fileID: 2100000, guid: e7abe8c3c73ef2fef89ac6260318e7f9, type: 2}
+  - {fileID: 2100000, guid: fee105f62b4cae8e2a00ea613a2415d0, type: 2}
+  - {fileID: 2100000, guid: 560f36aca1495ef66ad11cc3449ae8f0, type: 2}
+  - {fileID: 2100000, guid: 05d3619b2e3f541b4aca95861de32c08, type: 2}
+  - {fileID: 2100000, guid: 516d1803f2696664f87b3e1aef2539eb, type: 2}
   blobShadow: {fileID: 2100000, guid: 05d3ce164a1cac4f1959f89feaeb33b4, type: 2}
   courierModel: {fileID: 919132149155446097, guid: a0a9efb01717fad2c9b9af27489236f0, type: 3}
   runClip: {fileID: 4188298191382927259, guid: d3dd8dda650a7a17f91b1c6fe7789ab0, type: 3}
@@ -91,3 +129,5 @@ MonoBehaviour:
   font: {fileID: 11400000, guid: 16c608c04c63d0704baa7d35d9273ed4, type: 2}
   displayFont: {fileID: 11400000, guid: fd235189e4aaabb078a5989e1bf3e61b, type: 2}
   iconFont: {fileID: 11400000, guid: 370428e3ec8111f0a80fb15757d77ba4, type: 2}
+  fontShadow: {fileID: 2100000, guid: 85edc312b6d4b27f482783ff99e19982, type: 2}
+  displayFontShadow: {fileID: 2100000, guid: e8cb0316e150f72c3904a05829a0debb, type: 2}

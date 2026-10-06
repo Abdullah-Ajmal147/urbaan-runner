@@ -71,6 +71,9 @@ ur_unity() {
     if [ -z "$verdict" ] && [ -f "$logfile" ]; then
       # `|| true`: callers may run with `set -euo pipefail`, and "no verdict yet" must not abort them.
       verdict="$(grep -aoE 'Exiting with code [0-9]+|UR_BATCH_EXIT [0-9]+' "$logfile" 2>/dev/null | head -1 | grep -oE '[0-9]+$' || true)"
+      # A step can name its own final success line (UR_SUCCESS_MARKER): Unity has hung right after a
+      # finished Flutter export, before our UR_BATCH_EXIT line was ever written.
+      if [ -z "$verdict" ] && [ -n "${UR_SUCCESS_MARKER:-}" ] && grep -aqF "$UR_SUCCESS_MARKER" "$logfile" 2>/dev/null; then verdict=0; fi
       [ -n "$verdict" ] && verdict_at=$SECONDS
     fi
     if [ -n "$verdict" ] && [ $((SECONDS - verdict_at)) -ge "${UR_HANG_GRACE:-90}" ]; then

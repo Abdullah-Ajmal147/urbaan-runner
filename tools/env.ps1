@@ -64,6 +64,8 @@ function Invoke-Unity([string]$LogName, [string[]]$UnityArgs) {
     if ($null -eq $verdict -and (Test-Path $logFile)) {
       $m = Select-String -Path $logFile -Pattern 'Exiting with code (\d+)|UR_BATCH_EXIT (\d+)' | Select-Object -First 1
       if ($m) { $verdict = [int](($m.Matches[0].Groups | Where-Object { $_.Success } | Select-Object -Last 1).Value); $verdictAt = $sw.Elapsed.TotalSeconds }
+      # A step's own final success line counts too (Unity has hung right after a finished Flutter export).
+      elseif ($env:UR_SUCCESS_MARKER -and (Select-String -Path $logFile -SimpleMatch -Quiet -Pattern $env:UR_SUCCESS_MARKER)) { $verdict = 0; $verdictAt = $sw.Elapsed.TotalSeconds }
     }
     if ($null -ne $verdict -and ($sw.Elapsed.TotalSeconds - $verdictAt) -ge 90) {
       Write-Warning "unity '$LogName' reported exit $verdict but hung on shutdown; stopping it"

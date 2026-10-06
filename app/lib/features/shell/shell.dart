@@ -35,6 +35,17 @@ class _ShellState extends State<Shell> {
       const LockerScreen(),
       const StoreScreen(),
     ];
+    // Back on Missions/Locker/Store goes to Home first; only Back on Home leaves the app (negative test N9).
+    return PopScope(
+      canPop: _tab == 0,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _go(0);
+      },
+      child: _scaffold(pages, claimable),
+    );
+  }
+
+  Widget _scaffold(List<Widget> pages, int claimable) {
     return Scaffold(
       body: AnimatedSwitcher(duration: UrMotion.normal, child: KeyedSubtree(key: ValueKey(_tab), child: pages[_tab])),
       bottomNavigationBar: DecoratedBox(

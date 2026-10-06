@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: BuildingPaint3
+  m_Shader: {fileID: 4800000, guid: da70d0241579ff20eb2fee87bac43d58, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 1
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _BaseMap:
+        m_Texture: {fileID: 2800000, guid: 32749cc3a3461a2679cd1e4e259b1e6a, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _OutlineWidth: 0
+    - _RampSmooth: 0.04
+    - _RampThreshold: 0.1
+    - _RimPower: 3
+    - _RimStrength: 0.18
+    - _UseVertexColor: 0
+    m_Colors:
+    - _BaseColor: {r: 0.60784316, g: 0.8901961, b: 0.72156864, a: 1}
+    - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _OutlineColor: {r: 0.049999982, g: 0.04, b: 0.11999995, a: 1}
+    - _RimColor: {r: 1, g: 0.54999995, b: 0.85, a: 1}
+    - _ShadowTint: {r: 0.55, g: 0.42, b: 0.72, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1

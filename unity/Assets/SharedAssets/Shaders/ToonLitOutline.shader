@@ -17,6 +17,7 @@ Shader "GameFactory/ToonLitOutline"
         [HDR] _EmissionColor ("Emission", Color) = (0,0,0,0)
         _OutlineColor ("Outline Color", Color) = (0.05,0.04,0.12,1)
         _OutlineWidth ("Outline Width", Range(0,0.05)) = 0.0
+        [Toggle] _UseVertexColor ("Multiply by vertex colour (baked, merged meshes)", Float) = 0
     }
 
     SubShader
@@ -39,6 +40,7 @@ Shader "GameFactory/ToonLitOutline"
             half4 _EmissionColor;
             half4 _OutlineColor;
             float _OutlineWidth;
+            half _UseVertexColor;
         CBUFFER_END
 
         TEXTURE2D(_BaseMap); SAMPLER(sampler_BaseMap);
@@ -62,6 +64,7 @@ Shader "GameFactory/ToonLitOutline"
                 float4 positionOS : POSITION;
                 float3 normalOS : NORMAL;
                 float2 uv : TEXCOORD0;
+                half4 color : COLOR;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
@@ -72,6 +75,7 @@ Shader "GameFactory/ToonLitOutline"
                 float3 normalWS : TEXCOORD1;
                 float3 positionWS : TEXCOORD2;
                 half fog : TEXCOORD3;
+                half4 color : TEXCOORD4;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
@@ -86,6 +90,8 @@ Shader "GameFactory/ToonLitOutline"
                 o.normalWS = TransformObjectToWorldNormal(v.normalOS);
                 o.uv = TRANSFORM_TEX(v.uv, _BaseMap);
                 o.fog = ComputeFogFactor(p.positionCS.z);
+                // Merged meshes carry each part's colour per vertex; everything else ignores the attribute.
+                o.color = lerp(half4(1, 1, 1, 1), v.color, _UseVertexColor);
                 return o;
             }
 
@@ -94,7 +100,7 @@ Shader "GameFactory/ToonLitOutline"
             half4 frag(Varyings i) : SV_Target
             {
                 UNITY_SETUP_INSTANCE_ID(i);
-                half4 albedo = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, i.uv) * _BaseColor;
+                half4 albedo = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, i.uv) * _BaseColor * i.color;
                 float3 n = normalize(i.normalWS);
                 float3 viewDir = normalize(GetWorldSpaceViewDir(i.positionWS));
 
@@ -114,7 +120,7 @@ Shader "GameFactory/ToonLitOutline"
                 #endif
 
                 half rim = pow(saturate(1.0h - dot(n, viewDir)), _RimPower) * _RimStrength;
-                half3 color = albedo.rgb * diffuse + _RimColor.rgb * rim + _EmissionColor.rgb;
+                half3 color = albedo.rgb * diffuse + _RimColor.rgb * rim + _EmissionColor.rgb * i.color.rgb;
                 color = MixFog(color, i.fog);
                 return half4(color, 1);
             }

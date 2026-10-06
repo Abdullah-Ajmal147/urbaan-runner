@@ -88,7 +88,7 @@ Material:
     - _RampThreshold: 0.1
     - _ReceiveShadows: 1
     - _RimPower: 3
-    - _RimStrength: 0
+    - _RimStrength: 0.25
     - _Shininess: 0
     - _Smoothness: 0.5
     - _SmoothnessSource: 0
@@ -97,6 +97,7 @@ Material:
     - _SrcBlend: 1
     - _SrcBlendAlpha: 1
     - _Surface: 0
+    - _UseVertexColor: 0
     - _XRMotionVectorsPass: 1
     - _ZWrite: 1
     m_Colors:

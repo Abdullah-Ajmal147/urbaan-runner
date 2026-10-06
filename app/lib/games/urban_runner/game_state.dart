@@ -8,10 +8,12 @@ import '../../core/log.dart';
 import '../../core/remote_config/remote_config.dart';
 import '../../core/storage/local_store.dart';
 import 'economy.dart';
+import 'hunt.dart';
 import 'items.dart';
 import 'missions.dart';
 import 'profile.dart';
 import 'run_result.dart';
+import 'streak.dart';
 
 /// What a finished run earned (shown on Results).
 class RunReward {
@@ -29,7 +31,17 @@ class RunReward {
     required this.unlocked,
     required this.rejected,
     required this.alreadyProcessed,
+    this.huntFoundNow = false,
+    this.huntFoundToday = 0,
+    this.huntPrize = 0,
+    this.huntStreak = 0,
   });
+
+  /// Lantern Hunt (v3): a lantern was found this run; how many today; the prize if this completed the hunt.
+  final bool huntFoundNow;
+  final int huntFoundToday;
+  final int huntPrize;
+  final int huntStreak;
 
   final RunResult result;
   final int sparksCredited;
@@ -70,6 +82,9 @@ class GameState extends ChangeNotifier {
   /// Called after every save so a sync service can push the profile (M4).
   void Function(PlayerProfile)? onSaved;
 
+  /// The clock everything date-based uses (Daily Run, countdowns); a fake in tests.
+  DateTime now() => _clock();
+
   int get level => Economy.levelForXp(_p.xp);
   int get xpIntoLevel => _p.xp - Economy.xpForLevel(level);
   int get xpForNextLevel => Economy.xpForLevel(level + 1) - Economy.xpForLevel(level);
@@ -103,7 +118,8 @@ class GameState extends ChangeNotifier {
 
   /// Applies a run's rewards exactly once per sessionId (bridge rule 2). A duplicate returns the same
   /// shape with [RunReward.alreadyProcessed] and changes nothing.
-  Future<RunReward> applyRun(RunResult r) async {
+  Future<RunReward> applyRun(RunResult raw) async {
+    final r = raw.sanitised();
     final levelBefore = level;
     if (_p.processedSessions.contains(r.sessionId)) {
       Log.write(Log.bridge, 'duplicate session.ended ${r.sessionId} ignored');
@@ -141,6 +157,8 @@ class GameState extends ChangeNotifier {
       analytics.log('daily_run_complete', {'distance_m': distance, 'is_best': dailyBest ? 1 : 0});
     }
 
+    final (huntFoundNow, huntPrize) = _applyHunt(r);
+
     final missionsDone = Missions.apply(_p.missions, r);
     final xp = Economy.xpForRun(r.distanceM);
     final (levelUpSparks, unlocked) = _gainXp(xp);
@@ -169,7 +187,38 @@ class GameState extends ChangeNotifier {
       unlocked: unlocked,
       rejected: rejected,
       alreadyProcessed: false,
+      huntFoundNow: huntFoundNow,
+      huntFoundToday: huntFoundToday,
+      huntPrize: huntPrize,
+      huntStreak: _p.huntStreak,
     );
+  }
+
+  // ---------------- Lantern Hunt (D32) ----------------
+
+  int get huntFoundToday => LanternHunt.foundToday(today: todayKey, huntDate: _p.huntDate, found: _p.huntFound);
+
+  /// The hunt streak as the player sees it today: kept if completed today or yesterday, otherwise already lost.
+  int get huntStreakNow =>
+      _p.huntLastComplete == todayKey || _p.huntLastComplete == DailyStreak.yesterdayOf(todayKey) ? _p.huntStreak : 0;
+
+  /// Counts this run's lantern (once per run: applyRun is already once per sessionId). Returns (found, prize paid).
+  (bool, int) _applyHunt(RunResult r) {
+    if (!r.huntFound || r.mode == 'tutorial') return (false, 0);
+    final today = todayKey;
+    final before = LanternHunt.foundToday(today: today, huntDate: _p.huntDate, found: _p.huntFound);
+    if (before >= LanternHunt.size) return (false, 0);
+    _p.huntDate = today;
+    _p.huntFound = before + 1;
+    analytics.log('hunt_lantern_found', {'count': _p.huntFound});
+    if (_p.huntFound < LanternHunt.size) return (true, 0);
+    _p.huntStreak = LanternHunt.streakIfCompletedToday(today: today, lastComplete: _p.huntLastComplete, streak: _p.huntStreak);
+    _p.huntLastComplete = today;
+    final prize = LanternHunt.prizeFor(_p.huntStreak);
+    _p.sparks += prize;
+    _p.totalSparksEarned += prize;
+    analytics.log('hunt_complete', {'streak': _p.huntStreak, 'reward': prize});
+    return (true, prize);
   }
 
   /// Adds XP, pays level-up rewards and unlocks level items. Returns (sparks granted, item ids unlocked).
@@ -207,6 +256,24 @@ class GameState extends ChangeNotifier {
   }
 
   // ---------------- missions ----------------
+
+  // ---------------- daily streak (D32) ----------------
+
+  StreakStatus get streakStatus => DailyStreak.status(today: todayKey, lastClaim: _p.lastStreakClaim, streak: _p.streak);
+
+  /// Claims today's streak gift: once per UTC day, whatever happens (double taps, restarts). Returns sparks paid.
+  Future<int> claimStreak() async {
+    final st = streakStatus;
+    if (st.claimedToday) return 0;
+    _p.streak = st.day;
+    _p.lastStreakClaim = todayKey;
+    if (_p.streak > _p.streakBest) _p.streakBest = _p.streak;
+    _p.sparks += st.nextReward;
+    _p.totalSparksEarned += st.nextReward;
+    analytics.log('streak_claim', {'day': st.day, 'reward': st.nextReward});
+    await _save();
+    return st.nextReward;
+  }
 
   Future<int> claimMission(int index) async {
     final m = _p.missions[index];

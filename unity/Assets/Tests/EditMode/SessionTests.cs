@@ -66,6 +66,55 @@ namespace Tests.EditMode
             Assert.IsTrue(_session.Settings.ReduceMotion);
         }
 
+        // ---- negative test N1: the Android back button reaches Unity, not Flutter ----
+
+        [Test]
+        public void Back_Pauses_AndASecondDeliveryDoesNotResume()
+        {
+            Assert.IsFalse(_session.Back(), "no run yet: nothing to do");
+            Send("session.start", "s1", StartPayload());
+            Assert.IsTrue(_session.Back());
+            Assert.IsTrue(_session.Paused);
+            var d = _session.Sim.Distance;
+            Tick(1f);
+            Assert.AreEqual(d, _session.Sim.Distance, 1e-9, "paused: the run doesn't move");
+            // Back arrives twice (Flutter's game.pause and Unity's own key): it must stay paused.
+            Send("game.pause", "s1");
+            Assert.IsFalse(_session.Back());
+            Assert.IsTrue(_session.Paused);
+        }
+
+        [Test]
+        public void Back_OnTheContinueCard_MeansNoThanks()
+        {
+            Send("session.start", "s1", StartPayload(new JObject { ["forceCrashAtSeconds"] = 0.5 }));
+            Tick(1f);
+            Assert.AreEqual(SessionPhase.RevivePrompt, _session.Phase);
+            Assert.IsTrue(_session.Back());
+            Assert.AreEqual("obstacle", (string)Sent("session.ended").Single()["payload"]["cause"]);
+            Assert.IsFalse(_session.Back(), "ended: nothing to do");
+        }
+
+        [Test]
+        public void Hunt_IsPlacedFromSessionStart_AndReportedInSessionEnded()
+        {
+            var p = StartPayload(new JObject { ["endAfterSeconds"] = 0.5 });
+            p["hunt"] = new JObject { ["colour"] = 3, ["found"] = 2 };
+            Send("session.start", "h1", p);
+            Assert.IsTrue(_session.Start.HasHunt);
+            Assert.AreEqual(3, _session.Start.HuntColour);
+            Assert.AreEqual(2, _session.Start.HuntFound);
+            Assert.That(_session.Sim.Track.HuntAtM, Is.InRange(250.0, 600.0));
+            Tick(1f);
+            Assert.AreEqual(false, (bool)Sent("session.ended").Single()["payload"]["huntFound"]);
+
+            var none = StartPayload();
+            none["hunt"] = new JObject { ["colour"] = 9 }; // garbage: no lantern
+            Send("session.start", "h2", none);
+            Assert.IsFalse(_session.Start.HasHunt);
+            Assert.LessOrEqual(_session.Sim.Track.HuntAtM, 0);
+        }
+
         [Test]
         public void StartWithoutSessionId_IsAnError()
         {

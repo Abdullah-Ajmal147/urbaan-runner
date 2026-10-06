@@ -52,7 +52,7 @@ void main() {
       bridge = UnityBridge(t);
     });
 
-    const ready = '{"v":2,"type":"unity.ready","payload":{"bridgeVersion":2,"buildVersion":"0.1.0"}}';
+    const ready = '{"v":3,"type":"unity.ready","payload":{"bridgeVersion":3,"buildVersion":"0.1.0"}}';
 
     test('refuses to send before unity.ready', () {
       expect(() => bridge.send(BridgeMessage('game.pause')), throwsStateError);
@@ -106,7 +106,7 @@ void main() {
     test('passes unknown types through for callers to ignore', () async {
       final got = <BridgeMessage>[];
       bridge.messages.listen(got.add);
-      t.deliver('{"v":2,"type":"something.new"}');
+      t.deliver('{"v":3,"type":"something.new"}');
       await Future<void>.delayed(Duration.zero);
       expect(got.single.type, 'something.new');
     });

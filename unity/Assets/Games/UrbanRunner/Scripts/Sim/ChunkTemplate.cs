@@ -7,6 +7,7 @@ namespace UrbanRunner.Sim
     /// <summary>
     /// A hand-authored chunk of rows (HANDOVER §3.4). Each row is a 3-character lane pattern:
     ///   '.' empty · 'J' crate (jump) · 'S' banner (slide) · 'B' stall · 'V' van · 'C' rolling cart
+    ///   'R' tram with ramp (run up onto the roof) · 'T' tram (blocks at ground level)
     /// and a gap in beats before the row (1 beat = <see cref="TrackRules.BeatS"/> × speed).
     /// Sparks are placed by the generator in the gaps; a row ending in '*' asks for a spark line in its gap.
     /// </summary>
@@ -21,7 +22,7 @@ namespace UrbanRunner.Sim
         [Serializable]
         public struct Row
         {
-            [Tooltip("3 chars: . J S B V C")] public string lanes;
+            [Tooltip("3 chars: . J S B V C R T")] public string lanes;
             [Range(1, 4)] public int gapBeats;
             public bool sparks;
         }
@@ -36,6 +37,8 @@ namespace UrbanRunner.Sim
                 case 'B': return Obstacle.Stall;
                 case 'V': return Obstacle.Van;
                 case 'C': return Obstacle.Cart;
+                case 'R': return Obstacle.TramRamp;
+                case 'T': return Obstacle.Tram;
                 default: throw new FormatException("unknown lane char '" + c + "'");
             }
         }

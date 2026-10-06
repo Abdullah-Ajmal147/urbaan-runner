@@ -27,6 +27,7 @@ Material:
     m_Floats:
     - _Shape: 1
     - _Softness: 1.4
+    - _UseVertexColor: 0
     m_Colors:
     - _Color: {r: 0.05411765, g: 0.27058825, b: 0.3, a: 0.3}
   m_BuildTextureStacks: []

@@ -76,7 +76,7 @@ namespace UrbanRunner.Sim
         static bool IsClear(in TrackRow r) =>
             r.Effective(0) == Obstacle.None && r.Effective(1) == Obstacle.None && r.Effective(2) == Obstacle.None;
 
-        /// <summary>Nearest passable lane; prefers no action over jump/slide.</summary>
+        /// <summary>Nearest passable lane; prefers tram roofs (spark lines up there), then no action over jump/slide.</summary>
         int ChooseLane(in TrackRow row)
         {
             var best = _sim.Lane;
@@ -85,7 +85,7 @@ namespace UrbanRunner.Sim
             {
                 var o = row.Effective(l);
                 if (!TrackRules.IsPassable(o)) continue;
-                var cost = Math.Abs(l - _sim.Lane) + (o == Obstacle.None ? 0f : 0.6f);
+                var cost = Math.Abs(l - _sim.Lane) + (o == Obstacle.TramRamp ? -0.4f : o == Obstacle.None ? 0f : 0.6f);
                 if (cost < bestCost) { bestCost = cost; best = l; }
             }
             return best;

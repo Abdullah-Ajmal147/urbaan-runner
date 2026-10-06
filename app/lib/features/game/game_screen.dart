@@ -48,6 +48,20 @@ class _GameScreenState extends State<GameScreen> {
   late final GameState state = context.read<GameState>();
   StreamSubscription<BridgeMessage>? _sub;
   _Phase _phase = _Phase.connecting;
+
+  /// Unity confirmed the run started (session.started): the loading cover fades away (D33).
+  bool _started = false;
+  bool _coverGone = false; // removed after its fade: no invisible animation left running
+  late final String _tip = _tips[DateTime.now().millisecondsSinceEpoch % _tips.length];
+
+  static const _tips = [
+    'Run up the ramps: tram roofs are safer and full of sparks.',
+    'One lantern glows in every run. Find all five today for a big prize.',
+    'Bump into something twice and the Warden catches you.',
+    'Swipe down in the air to drop fast and slide.',
+    'Dodge at the very last moment for a "Close!"',
+    'Come back tomorrow: your daily gift grows every day.',
+  ];
   String? _sessionId;
   String _mode = 'normal';
   bool _rewardedThisRun = false;
@@ -84,7 +98,8 @@ class _GameScreenState extends State<GameScreen> {
       config: s.config,
       mode: _mode,
       seed: seed,
-      testMode: widget.testMode,
+      testMode: widget.testMode ?? s.runTestMode,
+      today: state.todayKey,
     )));
     s.analytics.log('game_start', {'session_id': _sessionId!, 'mode': _mode, 'character': p.selectedCharacter});
     setState(() => _phase = _Phase.running);
@@ -93,6 +108,8 @@ class _GameScreenState extends State<GameScreen> {
   Future<void> _onMessage(BridgeMessage m) async {
     if (m.sessionId != null && m.sessionId != _sessionId && m.type != 'unity.ready') return;
     switch (m.type) {
+      case 'session.started':
+        if (mounted && !_started) setState(() => _started = true);
       case 'analytics.event':
         _forwardAnalytics(m.payload);
       case 'ad.request':
@@ -173,8 +190,19 @@ class _GameScreenState extends State<GameScreen> {
         backgroundColor: UrColors.plumDeep,
         body: Stack(fit: StackFit.expand, children: [
           s.gameView(context, bridge),
-          if (_phase == _Phase.connecting)
-            Center(child: Semantics(label: 'Loading the game', child: const CircularProgressIndicator(color: UrColors.magenta))),
+          // Branded loading cover instead of a spinner over Unity's own frames (D33).
+          if (_phase != _Phase.failed && !_coverGone)
+            IgnorePointer(
+              ignoring: _started,
+              child: AnimatedOpacity(
+                opacity: _started ? 0 : 1,
+                duration: UrMotion.slow,
+                onEnd: () {
+                  if (_started && mounted) setState(() => _coverGone = true);
+                },
+                child: _LoadingCover(tip: _tip),
+              ),
+            ),
           if (_phase == _Phase.failed)
             Container(
               color: UrColors.night,
@@ -192,6 +220,50 @@ class _GameScreenState extends State<GameScreen> {
               ]),
             ),
         ]),
+      ),
+    );
+  }
+}
+
+/// "Heading to Lantern City…": shown from the tap on Play until Unity's first run frame.
+class _LoadingCover extends StatelessWidget {
+  const _LoadingCover({required this.tip});
+  final String tip;
+
+  @override
+  Widget build(BuildContext context) {
+    final reduced = MotionScope.reduced(context);
+    return Semantics(
+      label: 'Loading the game',
+      child: DecoratedBox(
+        key: const Key('loading_cover'),
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [UrColors.plum, UrColors.plumDeep, UrColors.night]),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(28, 24, 28, 36),
+            child: Column(children: [
+              const Spacer(flex: 2),
+              Expanded(flex: 5, child: Image.asset('assets/images/mira_run.png', fit: BoxFit.contain, excludeFromSemantics: true)),
+              const SizedBox(height: 24),
+              const Text('Heading to Lantern City…', style: UrText.title, textAlign: TextAlign.center),
+              const SizedBox(height: 18),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(3),
+                child: SizedBox(
+                  width: 180,
+                  height: 5,
+                  child: reduced
+                      ? const ColoredBox(color: UrColors.magenta)
+                      : const LinearProgressIndicator(color: UrColors.magenta, backgroundColor: UrColors.track),
+                ),
+              ),
+              const Spacer(),
+              Text(tip, style: UrText.body, textAlign: TextAlign.center),
+            ]),
+          ),
+        ),
       ),
     );
   }

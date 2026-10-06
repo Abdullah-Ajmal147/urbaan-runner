@@ -49,10 +49,23 @@ namespace GameFactory.Core.Audio
             if (!_music.isPlaying) _music.Play();
         }
 
+        /// <summary>Slightly faster music as the run speeds up (1 = normal).</summary>
+        public void SetMusicPitch(float pitch) => _music.pitch = pitch;
+
         public void PauseMusic(bool paused)
         {
             if (paused) _music.Pause();
             else if (_music.clip != null) _music.UnPause();
+        }
+
+        /// <summary>SFX at an exact pitch (rising combo notes).</summary>
+        public void PlayPitched(AudioClip clip, float volume, float pitch)
+        {
+            if (!SfxOn || clip == null) return;
+            var s = _sfx[_next];
+            _next = (_next + 1) % SfxVoices;
+            s.pitch = pitch;
+            s.PlayOneShot(clip, volume * SfxVolume);
         }
 
         /// <summary>Fire-and-forget SFX. Pitch variation keeps repeated pickups from sounding mechanical.</summary>

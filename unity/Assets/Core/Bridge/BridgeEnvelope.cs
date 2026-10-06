@@ -11,7 +11,7 @@ namespace GameFactory.Core.Bridge
     /// </summary>
     public sealed class BridgeEnvelope
     {
-        public const int CurrentVersion = 2; // v2: session.start.bestDistance, session.ended.tutorialCompleted
+        public const int CurrentVersion = 3; // v2: bestDistance, tutorialCompleted · v3: session.start.hunt, session.ended.huntFound
 
         public int V { get; }
         public string Type { get; }

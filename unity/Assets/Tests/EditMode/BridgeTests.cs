@@ -35,7 +35,7 @@ namespace Tests.EditMode
         [Test]
         public void Envelope_MissingPayload_IsEmptyObject()
         {
-            var env = BridgeEnvelope.Parse("{\"v\":2,\"type\":\"game.pause\"}");
+            var env = BridgeEnvelope.Parse("{\"v\":3,\"type\":\"game.pause\"}");
             Assert.IsNotNull(env.Payload);
             Assert.AreEqual(0, env.Payload.Count);
             Assert.IsNull(env.SessionId);
@@ -45,8 +45,8 @@ namespace Tests.EditMode
         [TestCase("not json")]
         [TestCase("{\"type\":\"x\"}")]
         [TestCase("{\"v\":\"1\",\"type\":\"x\"}")]
-        [TestCase("{\"v\":2}")]
-        [TestCase("{\"v\":2,\"type\":\"x\",\"payload\":[1]}")]
+        [TestCase("{\"v\":3}")]
+        [TestCase("{\"v\":3,\"type\":\"x\",\"payload\":[1]}")]
         public void Envelope_Malformed_Throws(string json)
         {
             Assert.Throws<BridgeParseException>(() => BridgeEnvelope.Parse(json));
@@ -74,7 +74,7 @@ namespace Tests.EditMode
         {
             BridgeEnvelope got = null;
             _router.On("spike.ping", e => got = e);
-            _host.HostSend("{\"v\":2,\"type\":\"spike.ping\",\"sessionId\":\"s1\",\"payload\":{\"t\":7}}");
+            _host.HostSend("{\"v\":3,\"type\":\"spike.ping\",\"sessionId\":\"s1\",\"payload\":{\"t\":7}}");
             Assert.IsNotNull(got);
             Assert.AreEqual("s1", got.SessionId);
             Assert.AreEqual(7, (int)got.Payload["t"]);
@@ -83,7 +83,7 @@ namespace Tests.EditMode
         [Test]
         public void Router_UnknownType_IsIgnoredWithoutReply()
         {
-            _host.HostSend("{\"v\":2,\"type\":\"no.such.type\"}");
+            _host.HostSend("{\"v\":3,\"type\":\"no.such.type\"}");
             Assert.AreEqual(0, _host.Sent.Count);
         }
 
@@ -110,7 +110,7 @@ namespace Tests.EditMode
         public void Router_HandlerException_BecomesErrorMessage()
         {
             _router.On("boom", _ => throw new System.InvalidOperationException("kaput"));
-            _host.HostSend("{\"v\":2,\"type\":\"boom\",\"sessionId\":\"s9\"}");
+            _host.HostSend("{\"v\":3,\"type\":\"boom\",\"sessionId\":\"s9\"}");
             var err = Last(_host);
             Assert.AreEqual("handler_failed", (string)err["payload"]["code"]);
             Assert.AreEqual("s9", (string)err["sessionId"]);

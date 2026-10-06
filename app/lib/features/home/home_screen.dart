@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:urban_runner/core/widgets/phosphor.dart';
 import 'package:provider/provider.dart';
@@ -6,15 +8,56 @@ import '../../core/app_services.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/widgets.dart';
 import '../../games/urban_runner/game_state.dart';
+import 'hunt_card.dart';
+import 'streak_sheet.dart';
 import '../../games/urban_runner/items.dart';
 import '../../games/urban_runner/profile.dart';
 import '../game/game_screen.dart';
 import '../profile/profile_screen.dart';
 import '../settings/settings_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key, required this.onOpenMissions});
   final VoidCallback onOpenMissions;
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+/// Rebuilds when the app returns to the foreground and once a minute, so the Daily Run countdown and the
+/// day itself never go stale while Home stays open (negative test N18 found "11h left" a day later).
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
+  Timer? _minute;
+
+  VoidCallback get onOpenMissions => widget.onOpenMissions;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _minute = Timer.periodic(const Duration(minutes: 1), (_) => mounted ? setState(() {}) : null);
+    // Today's streak gift, once per app session, when Home first appears (D32).
+    if (!StreakSheet.offeredThisSession) {
+      StreakSheet.offeredThisSession = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) StreakSheet.maybeShow(context);
+      });
+    }
+  }
+
+
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState s) {
+    if (s == AppLifecycleState.resumed && mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _minute?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +66,7 @@ class HomeScreen extends StatelessWidget {
     final p = state.profile;
     final levelP = state.xpForNextLevel == 0 ? 0.0 : state.xpIntoLevel / state.xpForNextLevel;
     final ready = p.missions.where((m) => m.claimable).length;
-    final dailyLeft = DailyRun.timeLeft(DateTime.now().toUtc());
+    final dailyLeft = DailyRun.timeLeft(state.now().toUtc());
     final todayBest = state.todayDailyBest;
     final firstRun = !p.tutorialDone;
 
@@ -39,11 +82,16 @@ class HomeScreen extends StatelessWidget {
           Row(children: [
             LevelRing(level: state.level, progress: levelP),
             const SizedBox(width: 10),
-            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('Courier level', style: UrText.small),
-              SparksAmount(value: p.sparks),
-            ]),
-            const Spacer(),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const Text('Courier level', style: UrText.small, overflow: TextOverflow.ellipsis),
+                FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: SparksAmount(value: p.sparks)),
+              ]),
+            ),
+            if (p.streak > 0 && !firstRun) ...[
+              _StreakChip(days: state.streakStatus.claimedToday ? p.streak : 0, onTap: () => StreakSheet.maybeShowAlways(context)),
+              const SizedBox(width: 8),
+            ],
             IconSquareButton(
               icon: PhosphorIcons.user(PhosphorIconsStyle.bold),
               label: 'Profile',
@@ -117,6 +165,10 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
           ]),
+          if (!firstRun) ...[
+            const SizedBox(height: 10),
+            const HuntCard(),
+          ],
           const SizedBox(height: 10),
           Panel(
             color: UrColors.night,
@@ -161,8 +213,18 @@ class _HeroCard extends StatelessWidget {
             )),
           ),
           Positioned(right: -30, top: -40, child: Container(width: 190, height: 190, decoration: BoxDecoration(shape: BoxShape.circle, color: UrColors.amber.withValues(alpha: .16)))),
-          Positioned(left: 0, right: 0, bottom: 0, height: 110, child: Container(color: UrColors.plumDeep)),
-          Positioned(left: -60, right: -60, top: 36, child: _Float(enabled: !reduced, child: Image.asset('assets/images/crew.png', semanticLabel: 'Juno, Mira and Dex, the three couriers, running together'))),
+          Positioned(left: 0, right: 0, bottom: 0, height: 104, child: Container(color: UrColors.plumDeep)),
+          // The crew stands above the text band, never over the title (negative test N15 found the overlap).
+          Positioned(
+            left: -20,
+            right: -20,
+            top: 30,
+            bottom: 104,
+            child: _Float(
+              enabled: !reduced,
+              child: Image.asset('assets/images/crew.png', fit: BoxFit.contain, alignment: Alignment.bottomCenter, semanticLabel: 'Juno, Mira and Dex, the three couriers, running together'),
+            ),
+          ),
           Positioned(
             left: 20,
             right: 20,
@@ -194,7 +256,20 @@ class _FloatState extends State<_Float> with SingleTickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    if (widget.enabled) _c.repeat(reverse: true);
+    // A few gentle floats when Home appears, then rest: an endless loop redraws the screen 60×/s for as long as
+    // the player sits on Home (battery), and keeps the UI from ever going idle.
+    if (widget.enabled) _float();
+  }
+
+  Future<void> _float() async {
+    try {
+      for (var i = 0; i < 3 && mounted; i++) {
+        await _c.forward();
+        await _c.reverse();
+      }
+    } on TickerCanceled {
+      // disposed mid-float
+    }
   }
 
   @override
@@ -208,5 +283,36 @@ class _FloatState extends State<_Float> with SingleTickerProviderStateMixin {
         animation: _c,
         builder: (_, child) => Transform.translate(offset: Offset(0, -5 * Curves.easeInOut.transform(_c.value)), child: child),
         child: widget.child,
+      );
+}
+
+/// "🔥 5" in the header: the streak at a glance; 0 means today's gift is still waiting.
+class _StreakChip extends StatelessWidget {
+  const _StreakChip({required this.days, required this.onTap});
+  final int days;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+        button: true,
+        label: days > 0 ? 'Daily streak, $days days' : 'Daily gift waiting',
+        excludeSemantics: true,
+        child: GestureDetector(
+          onTap: onTap,
+          child: Container(
+            height: 48,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              color: days > 0 ? UrColors.surface : UrColors.amber,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: UrColors.hairline),
+            ),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              Icon(days > 0 ? PhosphorIcons.flame(PhosphorIconsStyle.fill) : PhosphorIcons.gift(PhosphorIconsStyle.fill),
+                  color: days > 0 ? UrColors.amber : UrColors.amberInk, size: 20),
+              if (days > 0) ...[const SizedBox(width: 6), Text('$days', style: UrText.number.copyWith(fontSize: 17))],
+            ]),
+          ),
+        ),
       );
 }

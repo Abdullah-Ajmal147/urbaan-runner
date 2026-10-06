@@ -9,17 +9,20 @@ import '../core/bridge/unity_bridge.dart';
 import '../core/iap/store.dart';
 import '../core/remote_config/remote_config.dart';
 import '../core/storage/local_store.dart';
+import '../features/home/streak_sheet.dart';
 import 'fake_unity_game.dart';
 
 /// Builds the full app around a [FakeUnityGame] for widget and integration tests.
 /// Keep [store] between two harnesses to simulate an app restart.
 class TestHarness {
-  TestHarness({MemoryLocalStore? store, FakeUnityGame? game, this.config = const {}, DateTime Function()? clock})
+  TestHarness({LocalStore? store, FakeUnityGame? game, this.config = const {}, DateTime Function()? clock})
       : store = store ?? MemoryLocalStore(),
         game = game ?? FakeUnityGame(),
-        clock = clock ?? (() => DateTime.utc(2026, 10, 5, 12));
+        clock = clock ?? (() => DateTime.utc(2026, 10, 5, 12)) {
+    StreakSheet.offeredThisSession = false; // each harness is a fresh app process
+  }
 
-  final MemoryLocalStore store;
+  final LocalStore store;
   final FakeUnityGame game;
   final Map<String, Object?> config;
   final DateTime Function() clock;

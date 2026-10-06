@@ -79,12 +79,14 @@ namespace Tests.EditMode
                             $"seed {seed} row {row.Id}: gap {gapS:F3}s < {TrackRules.MinActionGapS}s");
 
                         // Reachability: from every lane the player could be in, some passable lane is reachable
-                        // within the gap after finishing the previous row's action (worst case: landing a jump).
+                        // within the gap. Lane changes work in mid-air (D28), so still being in the air after a crate
+                        // only matters when the lane reached needs another jump (worst case: landing late).
                         var prevLanes = Enumerable.Range(0, 3).Where(l => TrackRules.IsPassable(prev.Get(l)));
                         foreach (var from in prevLanes)
                         {
                             var busyAfterEnd = prev.Get(from) == Obstacle.Crate ? WorstJumpLandingAfterEnd(cfg, prev) : 0.0;
-                            var best = passable.Min(to => System.Math.Abs(to - from) * TrackRules.LaneChangeDuration);
+                            var best = passable.Min(to => System.Math.Abs(to - from) * TrackRules.LaneChangeDuration
+                                                          + (row.Get(to) == Obstacle.Crate ? busyAfterEnd : 0.0));
                             Assert.LessOrEqual(busyAfterEnd + best, gapS,
                                 $"seed {seed} row {row.Id}: lane {from} can't reach a passable lane in time");
                         }
@@ -154,9 +156,11 @@ namespace Tests.EditMode
                     gen.Recycle(gen.GeneratedTo - 100);
                 }
                 Assert.Greater(zs.Count, 40);
-                Assert.That(zs[0], Is.InRange(PowerUpRules.MinSpacingM - 5, PowerUpRules.MaxSpacingM + 5));
+                // "+ at most one row's length": the longest row is a ramped tram.
+                var slack = TrackRules.Length(Obstacle.TramRamp) + 1;
+                Assert.That(zs[0], Is.InRange(PowerUpRules.MinSpacingM - slack, PowerUpRules.MaxSpacingM + slack));
                 for (var i = 1; i < zs.Count; i++)
-                    Assert.That(zs[i] - zs[i - 1], Is.InRange(PowerUpRules.MinSpacingM - 5, PowerUpRules.MaxSpacingM + 5),
+                    Assert.That(zs[i] - zs[i - 1], Is.InRange(PowerUpRules.MinSpacingM - slack, PowerUpRules.MaxSpacingM + slack),
                         $"seed {seed}: power-up spacing {zs[i] - zs[i - 1]:F0} m");
             }
         }

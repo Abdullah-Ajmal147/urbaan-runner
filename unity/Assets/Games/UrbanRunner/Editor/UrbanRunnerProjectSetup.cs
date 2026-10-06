@@ -90,6 +90,12 @@ namespace UrbanRunner.Editor
             return m;
         }
 
+        /// <summary>Street materials share one rim strength so merged segments bake into one material (D29).</summary>
+        const float EnvRim = 0.12f;
+
+        /// <summary>Self-lit (lanterns, neon, lit windows): emission = colour × k, so they bake together (D29).</summary>
+        static Material Glowing(string name, Color32 color, float k) => Toon(name, color, 0f, 0f, (Color)color * k);
+
         static Material Glow(string name, Color32 color, float intensity, bool streak = false, float softness = 2f)
         {
             var m = Load(name, GlowShader);
@@ -123,6 +129,27 @@ namespace UrbanRunner.Editor
             return fa;
         }
 
+        /// <summary>A copy of the font's material with a soft underlay (an asset, so builds keep the shader variant).</summary>
+        static Material ShadowMaterial(TMP_FontAsset font, string name)
+        {
+            var path = $"{FontDir}/{name}.mat";
+            var m = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (m == null)
+            {
+                m = new Material(font.material);
+                AssetDatabase.CreateAsset(m, path);
+            }
+            m.CopyPropertiesFromMaterial(font.material);
+            m.EnableKeyword("UNDERLAY_ON");
+            m.SetColor("_UnderlayColor", new Color(0.12f, 0.05f, 0.22f, 0.8f));
+            m.SetFloat("_UnderlayOffsetX", 0f);
+            m.SetFloat("_UnderlayOffsetY", -0.5f);
+            m.SetFloat("_UnderlayDilate", 0.35f);
+            m.SetFloat("_UnderlaySoftness", 0.45f);
+            EditorUtility.SetDirty(m);
+            return m;
+        }
+
         static T Asset<T>(string path) where T : Object
         {
             var a = AssetDatabase.LoadAssetAtPath<T>(path);
@@ -145,38 +172,70 @@ namespace UrbanRunner.Editor
             }
             const float O = 0.03f; // obstacle outline (metres)
             // Palette tokens (HANDOVER §3.1), toon + outline: these build the obstacles.
-            a.night = Toon("Night", new Color32(0x0E, 0x12, 0x30, 0xFF), O, 0f);
-            a.surface = Toon("Surface", new Color32(0x2A, 0x30, 0x6E, 0xFF), O);
+            a.night = Toon("Night", new Color32(0x0E, 0x12, 0x30, 0xFF), O);
+            a.surface = Toon("Surface", new Color32(0x6C, 0x4B, 0xC8, 0xFF), O);
             a.magenta = Toon("NeonMagenta", new Color32(0xFF, 0x3D, 0xA6, 0xFF), O);
             a.cyan = Toon("NeonCyan", new Color32(0x2E, 0xE6, 0xFF, 0xFF), O);
             a.amber = Toon("LanternAmber", new Color32(0xFF, 0xB5, 0x47, 0xFF), O);
             a.text = Toon("Text", new Color32(0xF4, 0xF6, 0xFF, 0xFF), O);
             a.success = Toon("Success", new Color32(0x3D, 0xFF, 0xA2, 0xFF), O);
             a.danger = Toon("Danger", new Color32(0xFF, 0x5A, 0x5A, 0xFF), O);
-            a.vanBody = Toon("VanBody", new Color32(0xC8, 0xD2, 0xF4, 0xFF), O);
-            a.glass = Toon("Glass", new Color32(0x10, 0x16, 0x3A, 0xFF), O, 0f);
+            a.vanBody = Toon("VanBody", new Color32(0x2E, 0xC4, 0xB6, 0xFF), O);
+            a.glass = Toon("Glass", new Color32(0x10, 0x16, 0x3A, 0xFF), O);
             a.wood = Toon("Wood", new Color32(0xC0, 0x74, 0x34, 0xFF), O);
             // Street
-            a.ground = Toon("Ground", new Color32(0x22, 0x22, 0x4E, 0xFF), 0f, 0f);
+            // "Lantern Festival at dusk": warm, many-coloured, painterly (D27).
+            a.ground = Toon("Ground", new Color32(0x45, 0x3A, 0x5E, 0xFF), 0f, EnvRim);
             a.asphalt = a.ground;
-            a.pavement = Toon("Pavement", new Color32(0x3A, 0x34, 0x6E, 0xFF), 0f, 0f);
-            a.kerb = Toon("Kerb", new Color32(0xB9, 0xB4, 0xE6, 0xFF), 0f, 0f);
-            a.laneLine = Unlit("LaneLine", new Color32(0x9C, 0xA4, 0xF0, 0xFF));
+            a.pavement = Toon("Pavement", new Color32(0xC9, 0x71, 0x4F, 0xFF), 0f, EnvRim);
+            a.kerb = Toon("Kerb", new Color32(0xF2, 0xDC, 0xC0, 0xFF), 0f, EnvRim);
+            a.laneLine = Unlit("LaneLine", new Color32(0xFF, 0xE3, 0xB0, 0xFF));
             var colormap = Asset<Texture2D>($"{EnvDir}/Commercial/Textures/colormap.png");
             a.buildingToon = Toon("Building", Color.white, 0f, 0.15f, null, colormap);
-            a.buildingToon.SetColor("_ShadowTint", new Color(0.32f, 0.3f, 0.62f));
-            a.awningMagenta = Toon("AwningMagenta", new Color32(0xFF, 0x3D, 0xA6, 0xFF), 0f, 0.2f);
-            a.awningCyan = Toon("AwningCyan", new Color32(0x2E, 0xE6, 0xFF, 0xFF), 0f, 0.2f);
-            a.awningAmber = Toon("AwningAmber", new Color32(0xFF, 0xB5, 0x47, 0xFF), 0f, 0.2f);
-            a.lanternAmber = Toon("LanternGlowAmber", new Color32(0xFF, 0xB5, 0x47, 0xFF), 0f, 0f, new Color(1f, 0.62f, 0.2f) * 1.1f);
-            a.lanternMagenta = Toon("LanternGlowMagenta", new Color32(0xFF, 0x3D, 0xA6, 0xFF), 0f, 0f, new Color(1f, 0.2f, 0.6f));
-            a.lanternCyan = Toon("LanternGlowCyan", new Color32(0x2E, 0xE6, 0xFF, 0xFF), 0f, 0f, new Color(0.15f, 0.85f, 1f) * 0.9f);
-            a.lanternCap = Toon("LanternCap", new Color32(0x24, 0x18, 0x40, 0xFF), 0f, 0f);
-            a.neonMagenta = Unlit("NeonTubeMagenta", new Color(1f, 0.24f, 0.65f) * 1.6f);
-            a.neonCyan = Unlit("NeonTubeCyan", new Color(0.18f, 0.9f, 1f) * 1.6f);
-            a.neonAmber = Unlit("NeonTubeAmber", new Color(1f, 0.71f, 0.28f) * 1.6f);
-            a.signBack = Toon("SignBack", new Color32(0x14, 0x10, 0x34, 0xFF), 0f, 0f);
-            a.cord = Unlit("LanternCord", new Color32(0x10, 0x0C, 0x28, 0xFF));
+            a.buildingToon.SetColor("_ShadowTint", new Color(0.55f, 0.42f, 0.72f));
+            // Every building gets its own painted colour (tints over the Kenney colormap).
+            var paints = new[]
+            {
+                new Color32(0xFF, 0x8A, 0x7A, 0xFF), new Color32(0x3F, 0xC1, 0xB0, 0xFF), new Color32(0xF2, 0xB6, 0x40, 0xFF),
+                new Color32(0x9B, 0xE3, 0xB8, 0xFF), new Color32(0x7F, 0xB8, 0xF0, 0xFF), new Color32(0xB7, 0x9C, 0xF0, 0xFF),
+                new Color32(0xF2, 0x7B, 0xA8, 0xFF),
+            };
+            a.buildingPaints = paints.Select((c, i) =>
+            {
+                var m = Toon("BuildingPaint" + i, c, 0f, 0.18f, null, colormap);
+                m.SetColor("_ShadowTint", new Color(0.55f, 0.42f, 0.72f));
+                return m;
+            }).ToArray();
+            // Lantern City trams: one bold livery each, cream upper body, warm lit windows.
+            a.tramPaints = new[]
+            {
+                Toon("TramTeal", new Color32(0x14, 0xA8, 0x9C, 0xFF), O), Toon("TramCoral", new Color32(0xFF, 0x5E, 0x5B, 0xFF), O),
+                Toon("TramMustard", new Color32(0xF5, 0xA6, 0x23, 0xFF), O), Toon("TramCobalt", new Color32(0x3D, 0x5A, 0xFE, 0xFF), O),
+            };
+            a.tramCream = Toon("TramCream", new Color32(0xFF, 0xF1, 0xDC, 0xFF), O);
+            a.tramRoof = Toon("TramRoof", new Color32(0x5B, 0x4A, 0x7A, 0xFF), O);
+            a.tramWindow = Glowing("TramWindow", new Color32(0xFF, 0xC8, 0x6B, 0xFF), 1.0f);
+            a.rail = Toon("Rail", new Color32(0x8E, 0x82, 0xA8, 0xFF), 0f, EnvRim);
+            a.sky = Load("SkyDusk", "GameFactory/SkyGradient");
+            a.sky.SetColor("_Top", new Color32(0x35, 0x26, 0x78, 0xFF));
+            a.sky.SetColor("_Middle", new Color32(0xF2, 0x66, 0x8B, 0xFF));
+            a.sky.SetColor("_Bottom", new Color32(0xFF, 0xB5, 0x61, 0xFF));
+            a.sky.SetFloat("_MiddleHeight", 0.2f);
+            a.sky.SetVector("_SunDir", new Vector4(0.1f, 0.06f, 1f, 0f));
+            a.sky.SetColor("_SunColor", new Color(1f, 0.85f, 0.55f));
+            a.sky.SetFloat("_SunSize", 40f);
+            a.awningMagenta = Toon("AwningMagenta", new Color32(0xFF, 0x3D, 0xA6, 0xFF), 0f, EnvRim);
+            a.awningCyan = Toon("AwningCyan", new Color32(0x2E, 0xE6, 0xFF, 0xFF), 0f, EnvRim);
+            a.awningAmber = Toon("AwningAmber", new Color32(0xFF, 0xB5, 0x47, 0xFF), 0f, EnvRim);
+            a.lanternAmber = Glowing("LanternGlowAmber", new Color32(0xFF, 0xB5, 0x47, 0xFF), 1.0f);
+            a.lanternMagenta = Glowing("LanternGlowMagenta", new Color32(0xFF, 0x3D, 0xA6, 0xFF), 1.0f);
+            a.lanternCyan = Glowing("LanternGlowCyan", new Color32(0x2E, 0xE6, 0xFF, 0xFF), 1.0f);
+            a.lanternCap = Toon("LanternCap", new Color32(0x24, 0x18, 0x40, 0xFF), 0f, EnvRim);
+            a.neonMagenta = Glowing("NeonTubeMagenta", new Color32(0xFF, 0x3D, 0xA6, 0xFF), 1.0f);
+            a.neonCyan = Glowing("NeonTubeCyan", new Color32(0x2E, 0xE6, 0xFF, 0xFF), 1.0f);
+            a.neonAmber = Glowing("NeonTubeAmber", new Color32(0xFF, 0xB5, 0x47, 0xFF), 1.0f);
+            a.signBack = Toon("SignBack", new Color32(0x14, 0x10, 0x34, 0xFF), 0f, EnvRim);
+            a.cord = Toon("LanternCord", new Color32(0x24, 0x18, 0x40, 0xFF), 0f, EnvRim);
             a.buildings = Enumerable.Range(0, 14).Select(i => Asset<GameObject>($"{EnvDir}/Commercial/building-{(char)('a' + i)}.fbx")).ToArray();
             // Glow
             a.sparkGlow = Unlit("SparkGlow", new Color(0.55f, 1f, 1f));
@@ -192,6 +251,21 @@ namespace UrbanRunner.Editor
             a.sparkHalo = Glow("SparkHalo", new Color32(0x2E, 0xE6, 0xFF, 0xFF), 0.65f, false, 2.2f);
             a.shieldHalo = Glow("ShieldHalo", new Color32(0x3D, 0xFF, 0xA2, 0xFF), 0.45f, false, 1.2f);
             a.blobShadow = Load("BlobShadow", "GameFactory/BlobShadow");
+            // Trails (D32): colours come from the trail/particle vertex colours.
+            a.trailGlow = Glow("TrailGlow", new Color32(0xFF, 0xFF, 0xFF, 0xFF), 1.1f, false, 1.3f);
+            a.trailGlow.SetFloat("_Shape", 2f);
+            a.trailGlow.SetFloat("_UseVertexColor", 1f);
+            a.kiteToon = Toon("KitePaper", Color.white, 0f, 0.3f);
+            a.kiteToon.SetFloat("_UseVertexColor", 1f);
+            // Lantern Hunt (D32): five festival colours.
+            var hunt = new[]
+            {
+                ("Amber", new Color32(0xFF, 0xB5, 0x47, 0xFF)), ("Pink", new Color32(0xFF, 0x3D, 0xA6, 0xFF)), ("Blue", new Color32(0x2E, 0xE6, 0xFF, 0xFF)),
+                ("Mint", new Color32(0x3D, 0xFF, 0xA2, 0xFF)), ("Violet", new Color32(0xB0, 0x7C, 0xFF, 0xFF)),
+            };
+            a.huntBodies = hunt.Select(h => Glowing("HuntLantern" + h.Item1, h.Item2, 1.0f)).ToArray();
+            a.huntHalos = hunt.Select(h => Glow("HuntHalo" + h.Item1, h.Item2, 0.7f, false, 1.6f)).ToArray();
+            a.huntBeams = hunt.Select(h => Glow("HuntBeam" + h.Item1, h.Item2, 0.45f, true, 1.2f)).ToArray();
             // Courier
             a.courierModel = Asset<GameObject>(CharacterImport.ModelPath);
             a.runClip = Clip("run");
@@ -218,6 +292,8 @@ namespace UrbanRunner.Editor
             a.font = FontAsset("InstrumentSans-SemiBold.ttf", "InstrumentSans SDF");
             a.displayFont = FontAsset("BricolageGrotesque-ExtraBold.ttf", "BricolageGrotesque SDF");
             a.iconFont = FontAsset("Phosphor-Fill.ttf", "Phosphor SDF");
+            a.fontShadow = ShadowMaterial(a.font, "InstrumentSans Shadow");
+            a.displayFontShadow = ShadowMaterial(a.displayFont, "BricolageGrotesque Shadow");
             EditorUtility.SetDirty(a);
             AssetDatabase.SaveAssets();
             return a;
@@ -236,15 +312,9 @@ namespace UrbanRunner.Editor
                 set(c);
                 AssetDatabase.AddObjectToAsset(c, p);
             }
-            Add<Bloom>(b =>
-            {
-                b.threshold.Override(0.72f);
-                b.intensity.Override(1.5f);
-                b.scatter.Override(0.7f);
-                b.downscale.Override(BloomDownscaleMode.Quarter); // mobile: quarter-res bloom chain
-                b.maxIterations.Override(5);
-            });
-            Add<ColorAdjustments>(c => { c.saturation.Override(18f); c.contrast.Override(12f); });
+            // No Bloom (D31): the pipeline renders without HDR, so nothing ever crossed the bloom threshold, yet the
+            // bloom chain cost several full-screen passes per frame. The glow comes from the additive halo sprites.
+            Add<ColorAdjustments>(c => { c.saturation.Override(14f); c.contrast.Override(16f); });
             Add<Vignette>(v => { v.intensity.Override(0.28f); v.smoothness.Override(0.5f); });
             Add<Tonemapping>(t => t.mode.Override(TonemappingMode.Neutral));
             EditorUtility.SetDirty(p);
@@ -258,11 +328,11 @@ namespace UrbanRunner.Editor
 
             var camGo = new GameObject("Main Camera") { tag = "MainCamera" };
             var cam = camGo.AddComponent<Camera>();
-            cam.clearFlags = CameraClearFlags.SolidColor;
-            cam.backgroundColor = new Color32(0x1E, 0x14, 0x4E, 0xFF);
-            cam.fieldOfView = 58f;
-            cam.nearClipPlane = 2.5f; // nothing sits between the chase camera and the runner; clips overhead lanterns
-            cam.farClipPlane = 150f;
+            cam.clearFlags = CameraClearFlags.Skybox;
+            cam.backgroundColor = new Color32(0xE9, 0x87, 0x9A, 0xFF);
+            cam.fieldOfView = 60f;
+            cam.nearClipPlane = 0.6f; // high chase camera (D27): nothing sits between it and the runner
+            cam.farClipPlane = 170f;
             var camData = camGo.AddComponent<UniversalAdditionalCameraData>();
             camData.renderPostProcessing = true;
             camData.antialiasing = AntialiasingMode.FastApproximateAntialiasing;
@@ -271,18 +341,20 @@ namespace UrbanRunner.Editor
             var moon = new GameObject("Moonlight").AddComponent<Light>();
             moon.type = LightType.Directional;
             moon.shadows = LightShadows.None;
-            moon.color = new Color32(0xB8, 0xC2, 0xFF, 0xFF);
-            moon.intensity = 0.9f;
-            moon.transform.rotation = Quaternion.Euler(38, -35, 0);
+            moon.name = "Sunset";
+            moon.color = new Color32(0xFF, 0xD2, 0xA1, 0xFF);
+            moon.intensity = 1.15f;
+            moon.transform.rotation = Quaternion.Euler(28, -32, 0);
+            RenderSettings.skybox = AssetDatabase.LoadAssetAtPath<Material>($"{MaterialDir}/SkyDusk.mat");
             RenderSettings.ambientMode = AmbientMode.Trilight;
-            RenderSettings.ambientSkyColor = new Color32(0x5A, 0x4E, 0xB0, 0xFF);
-            RenderSettings.ambientEquatorColor = new Color32(0x3A, 0x2C, 0x7A, 0xFF);
-            RenderSettings.ambientGroundColor = new Color32(0x1A, 0x14, 0x40, 0xFF);
+            RenderSettings.ambientSkyColor = new Color32(0x9C, 0x7B, 0xD6, 0xFF);
+            RenderSettings.ambientEquatorColor = new Color32(0xE8, 0x9A, 0xA0, 0xFF);
+            RenderSettings.ambientGroundColor = new Color32(0x3A, 0x2C, 0x5E, 0xFF);
             RenderSettings.fog = true;
             RenderSettings.fogMode = FogMode.Linear;
-            RenderSettings.fogColor = new Color32(0x26, 0x1A, 0x5C, 0xFF);
-            RenderSettings.fogStartDistance = 22f;
-            RenderSettings.fogEndDistance = 110f;
+            RenderSettings.fogColor = new Color32(0xF0, 0x93, 0x8E, 0xFF);
+            RenderSettings.fogStartDistance = 35f;
+            RenderSettings.fogEndDistance = 150f;
 
             var volume = new GameObject("PostFX").AddComponent<Volume>();
             volume.isGlobal = true;

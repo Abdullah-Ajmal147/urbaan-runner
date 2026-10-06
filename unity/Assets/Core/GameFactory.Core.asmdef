@@ -1,7 +1,7 @@
 {
     "name": "GameFactory.Core",
     "rootNamespace": "GameFactory.Core",
-    "references": ["FlutterEmbed.Runtime", "Unity.InputSystem"],
+    "references": ["FlutterEmbed.Runtime", "Unity.InputSystem", "Unity.RenderPipelines.Core.Runtime", "Unity.RenderPipelines.Universal.Runtime"],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

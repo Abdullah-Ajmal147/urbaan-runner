@@ -31,11 +31,14 @@ namespace UrbanRunner.Sim
         readonly ParsedChunk[] _chunks;
         readonly RunConfig _config;
         SeededRandom _rng;
+        // Separate stream: the lantern must never change the track (the Daily Run is the same for everyone).
+        SeededRandom _huntRng;
 
         int _chunk = -1;
         int _row;
         bool _mirror;
         double _prevEnd;
+        bool _prevHadCrate;
         double _nextPowerUpZ;
         int _nextId;
         int _nextSparkId;
@@ -44,6 +47,10 @@ namespace UrbanRunner.Sim
         public RingBuffer<TrackRow> Rows { get; } = new RingBuffer<TrackRow>(96);
         public RingBuffer<Spark> Sparks { get; } = new RingBuffer<Spark>(384);
         public RingBuffer<PowerUpPickup> PowerUps { get; } = new RingBuffer<PowerUpPickup>(8);
+
+        /// <summary>Lantern Hunt: place one lantern at about this distance (≤ 0 = none this run).</summary>
+        public double HuntAtM { get; set; } = -1;
+        public HuntLantern Hunt;
 
         /// <summary>Absolute distance up to which the track has been generated.</summary>
         public double GeneratedTo => _prevEnd;
@@ -54,6 +61,7 @@ namespace UrbanRunner.Sim
             if (templates == null || templates.Count == 0) throw new ArgumentException("no chunk templates");
             _config = config;
             _rng = new SeededRandom(seed);
+            _huntRng = new SeededRandom(seed, 11);
             _chunks = new ParsedChunk[templates.Count];
             for (var i = 0; i < templates.Count; i++)
             {
@@ -123,7 +131,11 @@ namespace UrbanRunner.Sim
             var src = _chunks[_chunk].Rows[_row++];
 
             var gapStart = _prevEnd;
-            var z = AdvanceByTime(gapStart, src.Gap * TrackRules.BeatS);
+            // The ~0.8 s jump (D28) can land late after a crate; if every way through the next row is another
+            // jump, give the player one more beat to land and take off again.
+            var gap = src.Gap;
+            if (_prevHadCrate && OnlyJumpsThrough(src)) gap++;
+            var z = AdvanceByTime(gapStart, gap * TrackRules.BeatS);
 
             var row = new TrackRow
             {
@@ -137,10 +149,19 @@ namespace UrbanRunner.Sim
             Rows.Push(row);
 
             if (src.Sparks) PlaceSparks(gapStart, row);
+            PlaceRoofSparks(row);
             // Targets that fell inside the previous row land at the start of this gap.
             if (_nextPowerUpZ < z) PlacePowerUp(gapStart, row);
+            if (HuntAtM > 0 && !Hunt.Placed && z > HuntAtM) PlaceHunt(gapStart, row);
 
             _prevEnd = row.End;
+            _prevHadCrate = row.L0 == Obstacle.Crate || row.L1 == Obstacle.Crate || row.L2 == Obstacle.Crate;
+        }
+
+        static bool OnlyJumpsThrough(in ParsedRow r)
+        {
+            bool Free(Obstacle o) => TrackRules.IsPassable(o) && o != Obstacle.Crate;
+            return !Free(r.A) && !Free(r.B) && !Free(r.C);
         }
 
         void PickChunk()
@@ -198,6 +219,30 @@ namespace UrbanRunner.Sim
                 Sparks.Push(new Spark { Id = _nextSparkId++, Z = row.Z + 0.5, Lane = (byte)lane, Y = 2.2f });
                 Sparks.Push(new Spark { Id = _nextSparkId++, Z = row.Z + 1.5, Lane = (byte)lane, Y = 1.9f });
             }
+        }
+
+        /// <summary>The reward for going up: a spark line along the first ramped tram's roof.</summary>
+        void PlaceRoofSparks(in TrackRow row)
+        {
+            for (var l = 0; l < TrackRules.LaneCount; l++)
+            {
+                if (row.Get(l) != Obstacle.TramRamp) continue;
+                var y = TrackRules.TramHeight + 1.0f;
+                for (var z = row.Z + TrackRules.RampLength + 1.0; z < row.End - 0.5; z += TrackRules.SparkSpacing)
+                    Sparks.Push(new Spark { Id = _nextSparkId++, Z = z, Lane = (byte)l, Y = y });
+                return;
+            }
+        }
+
+        /// <summary>In the middle of a gap (gaps are clear in every lane), lifted so it's easy to grab.</summary>
+        void PlaceHunt(double gapStart, in TrackRow row)
+        {
+            Hunt = new HuntLantern
+            {
+                Z = gapStart + (row.Z - gapStart) * 0.5,
+                Lane = (byte)_huntRng.Range(0, TrackRules.LaneCount),
+                Placed = true,
+            };
         }
 
         void PlacePowerUp(double gapStart, in TrackRow row)

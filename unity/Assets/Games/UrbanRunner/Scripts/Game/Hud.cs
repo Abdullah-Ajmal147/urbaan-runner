@@ -32,6 +32,12 @@ namespace UrbanRunner.Game
 
         GameAssets _a;
         Sprite _round, _ring;
+        TextMeshProUGUI _toast, _toastIcon, _combo;
+        RectTransform _pill, _comboRoot;
+        float _pillPulse, _comboPulse;
+        int _shownCombo = -1;
+        RectTransform _toastRoot;
+        float _toastLeft;
         TextMeshProUGUI _distance, _bestLine, _sparks, _countdown, _reviveDistance, _reviveCause, _reviveBest, _reviveSparks, _prompt, _promptIcon;
         GameObject _pauseButton, _pauseMenu, _revive, _waiting, _promptCard;
         Image _ringFill;
@@ -73,6 +79,14 @@ namespace UrbanRunner.Game
             var pill = Panel(safe, "SparksPill", Deep, new Vector2(1, 1), new Vector2(-196, -60), new Vector2(250, 120), new Vector2(1, 1));
             Icon(pill, Icons.Sparkle, 50, Cyan, new Vector2(0, 0.5f), new Vector2(54, 0));
             _sparks = Text(pill, "Count", _a.displayFont, 60, TextColor, new Vector2(0, 0.5f), new Vector2(96, 0), new Vector2(150, 90), TextAlignmentOptions.Left, new Vector2(0, 0.5f));
+            _pill = pill.rectTransform;
+            // Combo badge under the sparks pill: "×12" while gems keep coming (D32).
+            var combo = Panel(safe, "Combo", Cyan, new Vector2(1, 1), new Vector2(-196, -192), new Vector2(150, 70), new Vector2(1, 1));
+            _combo = Text(combo, "Text", _a.displayFont, 46, Ink, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(150, 70), TextAlignmentOptions.Center, new Vector2(0.5f, 0.5f));
+            _combo.SetText("×0123456789");
+            _combo.ForceMeshUpdate(); // pre-warm glyphs: no atlas allocation mid-run
+            _comboRoot = combo.rectTransform;
+            _comboRoot.gameObject.SetActive(false);
             var pause = Panel(safe, "Pause", Deep, new Vector2(1, 1), new Vector2(-56, -60), new Vector2(120, 120), new Vector2(1, 1));
             Icon(pause, Icons.Pause, 54, TextColor, new Vector2(0.5f, 0.5f), Vector2.zero);
             AddButton(pause.gameObject, () => PausePressed?.Invoke());
@@ -96,6 +110,17 @@ namespace UrbanRunner.Game
                 _timerRoot[i] = row.gameObject;
                 row.gameObject.SetActive(false);
             }
+
+            // Toast (upper middle): "Faster!", "The Warden is on you!"
+            _toastRoot = Rect(root, "Toast", new Vector2(0.5f, 0.74f), new Vector2(0.5f, 0.74f), Vector2.zero, new Vector2(900, 130));
+            _toastIcon = Icon(_toastRoot, Icons.Lightning, 86, Amber, new Vector2(0.5f, 0.5f), new Vector2(-300, 0));
+            _toast = Text(_toastRoot, "Text", _a.displayFont, 96, TextColor, new Vector2(0.5f, 0.5f), new Vector2(40, 0), new Vector2(700, 130), TextAlignmentOptions.Center, new Vector2(0.5f, 0.5f));
+            // Pre-warm the dynamic font atlases so the first toast never allocates mid-run.
+            _toast.SetText("Faster! Warden on you! New best! Close! Lantern 12345 of 5! Hunt complete!");
+            _toast.ForceMeshUpdate();
+            _toastIcon.SetText(Icons.Lightning + Icons.Warning + Icons.Sparkle);
+            _toastIcon.ForceMeshUpdate();
+            _toastRoot.gameObject.SetActive(false);
 
             // Tutorial prompt (centre card)
             var promptCard = Panel(root, "TutorialPrompt", new Color(0.04f, 0.05f, 0.16f, 0.92f), new Vector2(0.5f, 0.62f), Vector2.zero, new Vector2(820, 300), new Vector2(0.5f, 0.5f));
@@ -146,8 +171,63 @@ namespace UrbanRunner.Game
             _revive.SetActive(false);
         }
 
+        /// <summary>A short, punchy message that pops in and fades (no allocation: text is a literal).</summary>
+        public void Toast(string text, string icon, Color color)
+        {
+            _toast.SetText(text);
+            _toast.color = color;
+            _toastIcon.SetText(icon);
+            _toastIcon.color = color;
+            _toastLeft = 1.3f;
+            _toastRoot.gameObject.SetActive(true);
+        }
+
+        /// <summary>A quick "boing" on the sparks counter when gems land.</summary>
+        public void PulseSparks() => _pillPulse = 1f;
+
+        /// <summary>Gem streak: shown from 5, pops on every 5th.</summary>
+        public void SetCombo(int combo)
+        {
+            if (combo == _shownCombo) return;
+            _shownCombo = combo;
+            var show = combo >= 5;
+            if (_comboRoot.gameObject.activeSelf != show) _comboRoot.gameObject.SetActive(show);
+            if (!show) return;
+            _combo.SetText("×{0}", combo);
+            if (combo % 5 == 0) _comboPulse = 1f;
+        }
+
+        void SyncPulses(float dt)
+        {
+            _pillPulse = Mathf.MoveTowards(_pillPulse, 0f, dt * 6f);
+            var p = 1f + 0.12f * Mathf.Sin(_pillPulse * Mathf.PI);
+            _pill.localScale = new Vector3(p, p, 1f);
+            _comboPulse = Mathf.MoveTowards(_comboPulse, 0f, dt * 4f);
+            var c = 1f + 0.3f * Mathf.Sin(_comboPulse * Mathf.PI);
+            _comboRoot.localScale = new Vector3(c, c, 1f);
+        }
+
+        void SyncToast(float dt)
+        {
+            if (_toastLeft <= 0f) return;
+            _toastLeft -= dt;
+            var age = 1.3f - _toastLeft;
+            // Pop in (overshoot), hold, fade out.
+            var s = age < 0.18f ? Mathf.Lerp(0.6f, 1.12f, age / 0.18f) : Mathf.Lerp(1.12f, 1f, Mathf.Clamp01((age - 0.18f) / 0.15f));
+            _toastRoot.localScale = new Vector3(s, s, 1f);
+            var a = Mathf.Clamp01(_toastLeft / 0.35f);
+            _toast.alpha = a;
+            _toastIcon.alpha = a;
+            if (_toastLeft <= 0f) _toastRoot.gameObject.SetActive(false);
+        }
+
+        /// <summary>Whether the tutorial prompt card is on screen (tests).</summary>
+        public bool PromptVisible => _promptCard != null && _promptCard.activeSelf;
+
         public void Sync(RunSession session)
         {
+            SyncToast(Time.unscaledDeltaTime);
+            SyncPulses(Time.unscaledDeltaTime);
             var sim = session.Sim;
             var running = session.Phase == SessionPhase.Running;
             SetActive(_pauseButton, running && !session.Paused);
@@ -174,7 +254,8 @@ namespace UrbanRunner.Game
             SetTimer(2, sim.DoubleLeft, PowerUpRules.Duration(PowerUpKind.DoubleSparks, sim.Upgrades));
 
             var prompt = session.Tutorial != null && !session.Tutorial.Completed ? session.Tutorial.Prompt : null;
-            SetActive(_promptCard, prompt != null);
+            // Never on top of the pause menu or the revive card (negative test N2 found the overlap).
+            SetActive(_promptCard, prompt != null && running && !session.Paused);
             if (prompt != null && !ReferenceEquals(prompt, _shownPrompt))
             {
                 _shownPrompt = prompt;
@@ -196,7 +277,7 @@ namespace UrbanRunner.Game
                     _countdown.SetText("{0}", c);
                     _reviveDistance.SetText("{0} m", d);
                     _reviveSparks.SetText("Your {0} sparks stay with you.", sim.Sparks);
-                    _reviveCause.SetText(CauseText(sim.CrashedInto));
+                    _reviveCause.SetText(sim.Caught ? "The Warden caught you" : CauseText(sim.CrashedInto));
                     if (best > 0 && best > d) _reviveBest.SetText("So close. Your best is {0} m.", best);
                     else _reviveBest.SetText(best > 0 ? "You're past your best. Keep going!" : "");
                 }
@@ -213,6 +294,8 @@ namespace UrbanRunner.Game
                 case Obstacle.Banner: return "Caught by a hanging sign";
                 case Obstacle.Van: return "Ran into a parked van";
                 case Obstacle.Cart: return "Hit by a rolling cart";
+                case Obstacle.Tram:
+                case Obstacle.TramRamp: return "Ran into a parked tram";
                 default: return "Bumped into a market stall";
             }
         }
@@ -303,6 +386,8 @@ namespace UrbanRunner.Game
             r.pivot = pivot ?? new Vector2(align == TextAlignmentOptions.TopLeft || align == TextAlignmentOptions.Left ? 0 : 0.5f, align == TextAlignmentOptions.TopLeft ? 1 : 0.5f);
             var t = r.gameObject.AddComponent<TextMeshProUGUI>();
             t.font = font;
+            if (font == _a.font && _a.fontShadow != null) t.fontSharedMaterial = _a.fontShadow;
+            else if (font == _a.displayFont && _a.displayFontShadow != null) t.fontSharedMaterial = _a.displayFontShadow;
             t.fontSize = size;
             t.color = color;
             t.alignment = align;

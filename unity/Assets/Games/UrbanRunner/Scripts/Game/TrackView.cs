@@ -8,23 +8,31 @@ namespace UrbanRunner.Game
     /// <summary>
     /// Renders the simulation's track with pooled objects. Each sim item has a stable id, mapped to a slot
     /// (id % slots), so visuals stay attached to the same item without dictionaries or per-frame allocations.
+    /// Sparks are drawn with GPU instancing instead (hundreds on screen, two draws, no GameObjects).
     /// </summary>
     public sealed class TrackView : MonoBehaviour
     {
         const int RowSlots = 128;
-        const int SparkSlots = 512;
+        const int MaxSparks = 512;
+        // A spark is a spinning diamond gem with a soft halo: big enough to read at speed (D28).
+        static readonly Vector3 GemScale = new Vector3(0.42f, 0.42f, 0.14f);
+        const float HaloSize = 1.4f;
         const int PowerUpSlots = 16;
 
         GameAssets _assets;
         ObjectPool<GameObject>[] _obstaclePools;
-        ObjectPool<GameObject> _sparkPool;
         ObjectPool<GameObject>[] _powerUpPools;
 
         readonly int[] _rowSlotId = new int[RowSlots];
         readonly GameObject[,] _rowSlot = new GameObject[RowSlots, TrackRules.LaneCount];
         readonly Obstacle[,] _rowSlotKind = new Obstacle[RowSlots, TrackRules.LaneCount];
-        readonly int[] _sparkSlotId = new int[SparkSlots];
-        readonly GameObject[] _sparkSlot = new GameObject[SparkSlots];
+        readonly Matrix4x4[] _sparkMatrices = new Matrix4x4[MaxSparks];
+        readonly Matrix4x4[] _haloMatrices = new Matrix4x4[MaxSparks];
+        Mesh _sparkMesh, _haloMesh;
+        RenderParams _sparkParams, _haloParams;
+
+        /// <summary>Sparks drawn last frame (tests and perf logs).</summary>
+        public int VisibleSparks { get; private set; }
         readonly int[] _puSlotId = new int[PowerUpSlots];
         readonly GameObject[] _puSlot = new GameObject[PowerUpSlots];
         readonly PowerUpKind[] _puSlotKind = new PowerUpKind[PowerUpSlots];
@@ -33,7 +41,7 @@ namespace UrbanRunner.Game
         {
             get
             {
-                var g = _sparkPool.GrowCount;
+                var g = 0;
                 foreach (var p in _obstaclePools) if (p != null) g += p.GrowCount;
                 foreach (var p in _powerUpPools) g += p.GrowCount;
                 return g;
@@ -51,7 +59,11 @@ namespace UrbanRunner.Game
                 var k = kind;
                 _obstaclePools[(int)k] = NewPool(() => VisualFactory.Obstacle(k, _assets, transform), 30);
             }
-            _sparkPool = NewPool(() => VisualFactory.Spark(_assets, transform), 160);
+            _sparkMesh = BuiltinMesh(PrimitiveType.Cube);
+            _haloMesh = BuiltinMesh(PrimitiveType.Quad);
+            var bounds = new Bounds(Vector3.zero, new Vector3(40, 40, 2000)); // the whole visible street
+            _sparkParams = new RenderParams(_assets.sparkGlow) { worldBounds = bounds, shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off, receiveShadows = false };
+            _haloParams = new RenderParams(_assets.sparkHalo) { worldBounds = bounds, shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off, receiveShadows = false };
             _powerUpPools = new ObjectPool<GameObject>[3];
             for (var i = 0; i < 3; i++)
             {
@@ -61,11 +73,54 @@ namespace UrbanRunner.Game
             ResetSlots();
         }
 
+        static Mesh BuiltinMesh(PrimitiveType t)
+        {
+            var g = GameObject.CreatePrimitive(t);
+            var m = g.GetComponent<MeshFilter>().sharedMesh;
+            Destroy(g);
+            return m;
+        }
+
         static ObjectPool<GameObject> NewPool(System.Func<GameObject> create, int prewarm)
         {
             var pool = new ObjectPool<GameObject>(create, g => g.SetActive(true), g => g.SetActive(false), prewarm);
             pool.Prewarm(prewarm);
             return pool;
+        }
+
+        readonly System.Collections.Generic.List<(GameObject go, int pool, bool powerUp)> _warm = new System.Collections.Generic.List<(GameObject, int, bool)>();
+
+        /// <summary>
+        /// Load-time shader warm-up (D31): shows one of every obstacle and power-up in front of the camera so the GPU
+        /// driver compiles their shaders now, not the first time one appears mid-run (a visible hitch on phones).
+        /// </summary>
+        public void ShowAllForWarmup(bool show, Vector3 inFrontOfCamera)
+        {
+            if (show)
+            {
+                var i = 0;
+                for (var k = 0; k < _obstaclePools.Length; k++)
+                {
+                    if (_obstaclePools[k] == null) continue;
+                    var go = _obstaclePools[k].Get();
+                    go.transform.localPosition = inFrontOfCamera + new Vector3((i % 3 - 1) * 2.5f, 0, 4f * (i / 3));
+                    _warm.Add((go, k, false));
+                    i++;
+                }
+                for (var k = 0; k < _powerUpPools.Length; k++)
+                {
+                    var go = _powerUpPools[k].Get();
+                    go.transform.localPosition = inFrontOfCamera + new Vector3((k - 1) * 2.5f, 1f, -2f);
+                    _warm.Add((go, k, true));
+                }
+                return;
+            }
+            foreach (var (go, pool, powerUp) in _warm)
+            {
+                if (powerUp) _powerUpPools[pool].Release(go);
+                else _obstaclePools[pool].Release(go);
+            }
+            _warm.Clear();
         }
 
         /// <summary>Returns every visual to its pool (new session).</summary>
@@ -76,12 +131,7 @@ namespace UrbanRunner.Game
                 for (var l = 0; l < TrackRules.LaneCount; l++) ReleaseObstacle(s, l);
                 _rowSlotId[s] = -1;
             }
-            for (var s = 0; s < SparkSlots; s++)
-            {
-                if (_sparkSlot[s] != null) _sparkPool.Release(_sparkSlot[s]);
-                _sparkSlot[s] = null;
-                _sparkSlotId[s] = -1;
-            }
+            VisibleSparks = 0;
             for (var s = 0; s < PowerUpSlots; s++)
             {
                 if (_puSlot[s] != null) _powerUpPools[(int)_puSlotKind[s]].Release(_puSlot[s]);
@@ -152,42 +202,34 @@ namespace UrbanRunner.Game
         void SyncSparks(RunSimulation sim, FloatingOrigin origin, float time)
         {
             var sparks = sim.Track.Sparks;
-            var firstId = sparks.Count > 0 ? sparks[0].Id : int.MaxValue;
-            for (var s = 0; s < SparkSlots; s++)
-            {
-                if (_sparkSlot[s] != null && _sparkSlotId[s] < firstId)
-                {
-                    _sparkPool.Release(_sparkSlot[s]);
-                    _sparkSlot[s] = null;
-                    _sparkSlotId[s] = -1;
-                }
-            }
             var bob = Mathf.Sin(time * 4f) * 0.08f;
-            for (var i = 0; i < sparks.Count; i++)
+            var toWorld = transform.localToWorldMatrix;
+            var spin = Quaternion.Euler(0, time * 160f, 45f); // turns about Y, stood on a corner
+            var n = 0;
+            for (var i = 0; i < sparks.Count && n < MaxSparks; i++)
             {
                 ref var sp = ref sparks[i];
-                var slot = sp.Id % SparkSlots;
-                if (sp.Collected)
-                {
-                    // Whatever the slot holds (this spark, or an older one) is no longer visible.
-                    if (_sparkSlot[slot] != null) _sparkPool.Release(_sparkSlot[slot]);
-                    _sparkSlot[slot] = null;
-                    _sparkSlotId[slot] = sp.Id;
-                    continue;
-                }
-                if (_sparkSlotId[slot] != sp.Id)
-                {
-                    if (_sparkSlot[slot] != null) _sparkPool.Release(_sparkSlot[slot]);
-                    _sparkSlot[slot] = _sparkPool.Get();
-                    _sparkSlotId[slot] = sp.Id;
-                }
-                var go = _sparkSlot[slot];
-                if (go == null) continue;
+                if (sp.Collected) continue;
                 var pos = new Vector3(TrackRules.LaneX(sp.Lane), sp.Y + bob, origin.ToWorld(sp.Z));
                 if (sim.MagnetLeft > 0 && sp.Z - sim.Distance < 6 && Mathf.Abs(sp.Lane - sim.Lane) <= 1)
                     pos.x = Mathf.Lerp(pos.x, sim.X, Mathf.Clamp01(1f - (float)(sp.Z - sim.Distance) / 6f)); // visible pull
-                go.transform.localPosition = pos;
+                _sparkMatrices[n] = toWorld * Matrix4x4.TRS(pos, spin, GemScale);
+                // The halo sits just in front of the spark; additive, so overlapping halos simply brighten.
+                _haloMatrices[n] = toWorld * Matrix4x4.TRS(pos + new Vector3(0, 0, -0.05f), Quaternion.identity, new Vector3(HaloSize, HaloSize, HaloSize));
+                n++;
             }
+            VisibleSparks = n;
+        }
+
+        /// <summary>Two instanced draws for every visible spark. Called every frame, also while paused.</summary>
+        void LateUpdate() => DrawSparks();
+
+        /// <summary>Queues the instanced spark draws for this frame's camera renders.</summary>
+        public void DrawSparks()
+        {
+            if (VisibleSparks == 0 || _sparkMesh == null) return;
+            Graphics.RenderMeshInstanced(_sparkParams, _sparkMesh, 0, _sparkMatrices, VisibleSparks);
+            Graphics.RenderMeshInstanced(_haloParams, _haloMesh, 0, _haloMatrices, VisibleSparks);
         }
 
         void SyncPowerUps(RunSimulation sim, FloatingOrigin origin, float time)

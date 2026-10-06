@@ -54,5 +54,20 @@ namespace Tests.EditMode
             Assert.AreEqual(UIOrientation.Portrait, PlayerSettings.defaultInterfaceOrientation);
             Assert.AreEqual("0.1.0", PlayerSettings.bundleVersion);
         }
+
+        /// <summary>Regression (negative test N1, D30): with Unity's predictive-back support on, the embedded Unity
+        /// view swallowed the Back gesture on Android 16 and neither side paused the run.</summary>
+        [Test]
+        public void PredictiveBack_IsLeftToFlutter()
+        {
+            Assert.IsFalse(PlayerSettings.Android.predictiveBackSupport);
+        }
+
+        /// <summary>D33: the owner saw Unity's splash (with the app's spinner on top of it) on a real phone.</summary>
+        [Test]
+        public void UnitySplash_IsOff()
+        {
+            Assert.IsFalse(PlayerSettings.SplashScreen.show);
+        }
     }
 }

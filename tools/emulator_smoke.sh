@@ -2,10 +2,34 @@
 # Installs an APK on the emulator, lets it run, captures logcat + screenshots, fails on any crash marker.
 #   tools/emulator_smoke.sh [apk] [seconds] [avd]
 # Default apk: build/out/UrbanRunner-<ver>-standalone-emulator.apk (Unity autoplays on its own).
+#   tools/emulator_smoke.sh combined [avd]
+# Combined app (Flutter + exported Unity): 3 runs Home → Game → Results → Home via integration_test,
+# with logcat captured and scanned. Export Unity first (tools/build_all.sh emulator).
 set -u
 source "$(dirname "$0")/env.sh"
 source "$ROOT/tools/lib/adb.sh"
 cd "$ROOT"
+
+if [ "${1:-}" = combined ]; then
+  AVD="${2:-ur_api36}"
+  STAMP="$(date +%Y%m%d-%H%M%S)"
+  LOGCAT="build/logs/combined_logcat_$STAMP.txt"
+  mkdir -p build/logs
+  ur_ensure_emulator "$AVD"
+  echo "== combined smoke on $ADB_SERIAL"
+  ur_logcat_start "$LOGCAT"
+  (cd app && flutter test integration_test/combined_test.dart -d "$ADB_SERIAL") > "build/logs/combined_test_$STAMP.log" 2>&1
+  RC=$?
+  ur_screenshot "build/logs/combined_end_$STAMP.png" || true
+  ur_logcat_stop
+  tail -5 "build/logs/combined_test_$STAMP.log"
+  grep -E "UR_PERF" "$LOGCAT" | tail -8
+  FAIL=$RC
+  if ! CR="$(ur_scan_crashes "$LOGCAT")"; then echo "$CR" | head -20; FAIL=1; fi
+  echo "logcat: $LOGCAT  test log: build/logs/combined_test_$STAMP.log"
+  [ "$FAIL" = 0 ] && echo "SMOKE CLEAN" || echo "SMOKE FAILED"
+  exit "$FAIL"
+fi
 
 VERSION="$(grep -E '^version:' app/pubspec.yaml | sed -E 's/version: *([^+]+).*/\1/')"
 APK="${1:-build/out/UrbanRunner-$VERSION-standalone-emulator.apk}"

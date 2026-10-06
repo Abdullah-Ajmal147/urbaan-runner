@@ -29,4 +29,5 @@ run 0 "hang after success verdict returns 0" FAKE_VERDICT="UR_BATCH_EXIT 0"
 run 2 "hang after test failure returns the test's code" FAKE_VERDICT="Test run completed. Exiting with code 2 (Failed)."
 run 3 "normal exit keeps the process exit code" FAKE_VERDICT="UR_BATCH_EXIT 3" FAKE_EXIT=3
 run 124 "no verdict times out" FAKE_VERDICT="still working" UR_BATCHMODE_TIMEOUT=8
+run 0 "hang right after the step's own success line returns 0" FAKE_VERDICT="Building project for Flutter succeeded" UR_SUCCESS_MARKER="Building project for Flutter succeeded"
 echo "ALL PASS"

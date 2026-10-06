@@ -5,8 +5,9 @@ Shader "GameFactory/AdditiveGlow"
     Properties
     {
         [HDR] _Color ("Color", Color) = (1,0.7,0.3,1)
-        [Enum(Radial,0,Streak,1)] _Shape ("Shape", Float) = 0
+        [Enum(Radial,0,Streak,1,Ribbon,2)] _Shape ("Shape", Float) = 0
         _Softness ("Softness", Range(0.5,6)) = 2
+        [Toggle] _UseVertexColor ("Multiply by vertex colour (baked, merged meshes)", Float) = 0
     }
     SubShader
     {
@@ -29,10 +30,11 @@ Shader "GameFactory/AdditiveGlow"
                 half4 _Color;
                 half _Shape;
                 half _Softness;
+                half _UseVertexColor;
             CBUFFER_END
 
-            struct Attributes { float4 positionOS : POSITION; float2 uv : TEXCOORD0; UNITY_VERTEX_INPUT_INSTANCE_ID };
-            struct Varyings { float4 positionCS : SV_POSITION; float2 uv : TEXCOORD0; };
+            struct Attributes { float4 positionOS : POSITION; float2 uv : TEXCOORD0; half4 color : COLOR; UNITY_VERTEX_INPUT_INSTANCE_ID };
+            struct Varyings { float4 positionCS : SV_POSITION; float2 uv : TEXCOORD0; half4 color : TEXCOORD1; };
 
             Varyings vert(Attributes v)
             {
@@ -40,6 +42,7 @@ Shader "GameFactory/AdditiveGlow"
                 UNITY_SETUP_INSTANCE_ID(v);
                 o.positionCS = TransformObjectToHClip(v.positionOS.xyz);
                 o.uv = v.uv;
+                o.color = lerp(half4(1, 1, 1, 1), v.color, _UseVertexColor);
                 return o;
             }
 
@@ -49,8 +52,12 @@ Shader "GameFactory/AdditiveGlow"
                 // Radial: soft disc. Streak: narrow across, fading along its length (a reflection on wet asphalt).
                 half radial = saturate(1 - length(c));
                 half streak = saturate(1 - abs(c.x)) * saturate(1 - abs(c.y) * 0.9);
-                half a = pow(lerp(radial, streak, _Shape), _Softness);
-                return half4(_Color.rgb * a, 1);
+                // Ribbon (trails): bright along the middle, fading only across the width; the length fade comes from
+                // the vertex colour's alpha (TrailRenderer gradient).
+                half ribbon = saturate(1 - abs(i.uv.y * 2 - 1));
+                half shape = _Shape < 0.5 ? radial : (_Shape < 1.5 ? streak : ribbon);
+                half a = pow(shape, _Softness);
+                return half4(_Color.rgb * i.color.rgb * i.color.a * a, 1);
             }
             ENDHLSL
         }

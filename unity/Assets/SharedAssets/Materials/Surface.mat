@@ -84,10 +84,11 @@ Material:
     - _SrcBlend: 1
     - _SrcBlendAlpha: 1
     - _Surface: 0
+    - _UseVertexColor: 0
     - _XRMotionVectorsPass: 1
     - _ZWrite: 1
     m_Colors:
-    - _BaseColor: {r: 0.16470589, g: 0.1882353, b: 0.43137255, a: 1}
+    - _BaseColor: {r: 0.42352942, g: 0.29411766, b: 0.78431374, a: 1}
     - _Color: {r: 0.101960756, g: 0.12549016, b: 0.31372547, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _OutlineColor: {r: 0.049999982, g: 0.04, b: 0.11999995, a: 1}

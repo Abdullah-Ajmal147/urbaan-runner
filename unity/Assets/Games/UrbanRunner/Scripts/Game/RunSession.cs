@@ -81,6 +81,9 @@ namespace UrbanRunner.Game
             Sim = new RunSimulation(_templates, s.Config, s.Upgrades, s.Seed, s.Mode);
             Bot = s.Test.Autoplay ? new AutoplayBot(Sim, s.Test.Skill, s.Seed) : null;
             Tutorial = s.Mode == RunMode.Tutorial ? new TutorialDirector(Sim) : null;
+            // Lantern Hunt (v3): one lantern somewhere between 250 and 600 m; never during the tutorial.
+            if (s.HasHunt && Tutorial == null)
+                Sim.Track.HuntAtM = new GameFactory.Core.Random.SeededRandom(s.Seed, 12).Range(250f, 600f);
             TutorialCompleted = false;
             _tutorialTime = 0f;
             Paused = false;
@@ -91,6 +94,27 @@ namespace UrbanRunner.Game
             if (Tutorial != null) Analytics("tutorial_begin");
             Started?.Invoke(s);
             SettingsChanged?.Invoke(Settings);
+        }
+
+        /// <summary>
+        /// The Android back button, if it reaches Unity (Flutter normally forwards it as game.pause): running →
+        /// pause, "Keep running?" → no thanks. Never resumes: Back can arrive by both paths, and two deliveries must
+        /// not cancel out (D30). Resuming is the pause menu's "Keep running" button. Returns true if it did something.
+        /// </summary>
+        public bool Back()
+        {
+            switch (Phase)
+            {
+                case SessionPhase.Running:
+                    if (Paused) return false;
+                    SetPaused(true);
+                    return true;
+                case SessionPhase.RevivePrompt:
+                    DeclineRevive();
+                    return true;
+                default:
+                    return false; // waiting for an ad, idle or ended: nothing to do
+            }
         }
 
         public void SetPaused(bool paused)
@@ -256,6 +280,7 @@ namespace UrbanRunner.Game
                 },
                 ["buildVersion"] = _buildVersion,
                 ["tutorialCompleted"] = TutorialCompleted,
+                ["huntFound"] = Sim.HuntCollected,
             };
             GameLog.Write(GameLog.Game, $"session {Start.SessionId} ended cause={payload["cause"]} distance={Sim.Distance:F0} sparks={Sim.Sparks}");
             _router.Send("session.ended", Start.SessionId, payload);

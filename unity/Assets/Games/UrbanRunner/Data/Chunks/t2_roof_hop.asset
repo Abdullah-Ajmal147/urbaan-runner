@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 854cd95981fce92e8aae1a1b2dc1c0ed, type: 3}
+  m_Name: t2_roof_hop
+  m_EditorClassIdentifier: UrbanRunner::UrbanRunner.Sim.ChunkTemplate
+  tier: 2
+  weight: 1
+  rows:
+  - lanes: R.T
+    gapBeats: 2
+    sparks: 1
+  - lanes: .J.
+    gapBeats: 1
+    sparks: 0

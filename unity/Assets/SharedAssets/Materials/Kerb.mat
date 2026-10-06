@@ -33,9 +33,10 @@ Material:
     - _RampSmooth: 0.04
     - _RampThreshold: 0.1
     - _RimPower: 3
-    - _RimStrength: 0
+    - _RimStrength: 0.12
+    - _UseVertexColor: 0
     m_Colors:
-    - _BaseColor: {r: 0.7254902, g: 0.7058824, b: 0.9019608, a: 1}
+    - _BaseColor: {r: 0.9490196, g: 0.8627451, b: 0.7529412, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _OutlineColor: {r: 0.049999982, g: 0.04, b: 0.11999995, a: 1}
     - _RimColor: {r: 1, g: 0.54999995, b: 0.85, a: 1}

@@ -32,6 +32,8 @@ abstract final class PhosphorIcons {
       s == PhosphorIconsStyle.fill ? const IconData(0xea38, fontFamily: 'PhosphorFill') : const IconData(0xea38, fontFamily: 'PhosphorBold');
   static IconData gearSix([PhosphorIconsStyle s = PhosphorIconsStyle.bold]) =>
       s == PhosphorIconsStyle.fill ? const IconData(0xe272, fontFamily: 'PhosphorFill') : const IconData(0xe272, fontFamily: 'PhosphorBold');
+  static IconData flame([PhosphorIconsStyle s = PhosphorIconsStyle.bold]) =>
+      s == PhosphorIconsStyle.fill ? const IconData(0xe624, fontFamily: 'PhosphorFill') : const IconData(0xe624, fontFamily: 'PhosphorBold');
   static IconData gift([PhosphorIconsStyle s = PhosphorIconsStyle.bold]) =>
       s == PhosphorIconsStyle.fill ? const IconData(0xe276, fontFamily: 'PhosphorFill') : const IconData(0xe276, fontFamily: 'PhosphorBold');
   static IconData graduationCap([PhosphorIconsStyle s = PhosphorIconsStyle.bold]) =>

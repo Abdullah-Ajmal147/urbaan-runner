@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: NeonTubeAmber
-  m_Shader: {fileID: 4800000, guid: 650dd9526735d5b46b79224bc6e94025, type: 3}
+  m_Shader: {fileID: 4800000, guid: da70d0241579ff20eb2fee87bac43d58, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -17,8 +17,7 @@ Material:
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
-  stringTagMap:
-    RenderType: Opaque
+  stringTagMap: {}
   disabledShaderPasses:
   - MOTIONVECTORS
   m_LockedProperties: 
@@ -44,16 +43,26 @@ Material:
     - _Cutoff: 0.5
     - _DstBlend: 0
     - _DstBlendAlpha: 0
+    - _OutlineWidth: 0
     - _QueueOffset: 0
+    - _RampSmooth: 0.04
+    - _RampThreshold: 0.1
+    - _RimPower: 3
+    - _RimStrength: 0
     - _SampleGI: 0
     - _SrcBlend: 1
     - _SrcBlendAlpha: 1
     - _Surface: 0
+    - _UseVertexColor: 0
     - _XRMotionVectorsPass: 1
     - _ZWrite: 1
     m_Colors:
-    - _BaseColor: {r: 1.6, g: 1.136, b: 0.448, a: 1.6}
+    - _BaseColor: {r: 1, g: 0.70980394, b: 0.2784314, a: 1}
     - _Color: {r: 1.6, g: 1.136, b: 0.44799995, a: 1.6}
+    - _EmissionColor: {r: 1, g: 0.70980394, b: 0.2784314, a: 1}
+    - _OutlineColor: {r: 0.049999982, g: 0.04, b: 0.11999995, a: 1}
+    - _RimColor: {r: 1, g: 0.54999995, b: 0.85, a: 1}
+    - _ShadowTint: {r: 0.45, g: 0.41999996, b: 0.75, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
 --- !u!114 &2329087389560862071

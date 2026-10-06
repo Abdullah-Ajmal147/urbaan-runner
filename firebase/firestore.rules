@@ -1,0 +1,78 @@
+rules_version = '2';
+
+// Urban Runner (HANDOVER §7.1). Rules can't fully protect the economy; that needs a server (KNOWN_ISSUES K2).
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function isOwner(uid) { return signedIn() && request.auth.uid == uid; }
+    function isInt(v, lo, hi) { return v is int && v >= lo && v <= hi; }
+    function isShortString(v) { return v is string && v.size() > 0 && v.size() <= 64; }
+
+    // ---- users/{uid}: shared profile (economy, selections, settings) ----
+    function validUser(d) {
+      return d.keys().hasOnly(['createdAt', 'lastActiveAt', 'schemaVersion', 'sparks', 'xp', 'level',
+                               'selectedCharacter', 'selectedTrail', 'ownedItems', 'upgrades', 'settings'])
+        && d.keys().hasAll(['createdAt', 'schemaVersion', 'sparks', 'xp', 'level'])
+        && d.createdAt is timestamp
+        && (!('lastActiveAt' in d) || d.lastActiveAt is timestamp)
+        && isInt(d.schemaVersion, 1, 100)
+        && isInt(d.sparks, 0, 100000000)
+        && isInt(d.xp, 0, 1000000000)
+        && isInt(d.level, 1, 1000)
+        && (!('selectedCharacter' in d) || isShortString(d.selectedCharacter))
+        && (!('selectedTrail' in d) || isShortString(d.selectedTrail))
+        && (!('ownedItems' in d) || (d.ownedItems is list && d.ownedItems.size() <= 200))
+        && (!('upgrades' in d) || validUpgrades(d.upgrades))
+        && (!('settings' in d) || (d.settings is map && d.settings.size() <= 20));
+    }
+    function validUpgrades(u) {
+      return u is map && u.keys().hasOnly(['magnet', 'shield', 'double'])
+        && (!('magnet' in u) || isInt(u.magnet, 0, 5))
+        && (!('shield' in u) || isInt(u.shield, 0, 5))
+        && (!('double' in u) || isInt(u['double'], 0, 5));
+    }
+
+    match /users/{uid} {
+      allow read: if isOwner(uid);
+      allow create: if isOwner(uid) && validUser(request.resource.data)
+        && request.resource.data.sparks <= 20000;
+      allow update: if isOwner(uid) && validUser(request.resource.data)
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.sparks <= resource.data.sparks + 20000;
+      allow delete: if isOwner(uid);
+    }
+
+    // ---- games/urban_runner/players/{uid}: per-game progress ----
+    function validPlayer(d) {
+      return d.keys().hasOnly(['bestDistance', 'totalRuns', 'dailyBest', 'missions', 'updatedAt',
+                               'totalSparksEarned', 'missionCounter', 'tutorialDone'])
+        && d.keys().hasAll(['bestDistance', 'totalRuns'])
+        && d.bestDistance is number && d.bestDistance >= 0 && d.bestDistance <= 10000000
+        && isInt(d.totalRuns, 0, 10000000)
+        && (!('dailyBest' in d) || (d.dailyBest is map
+              && d.dailyBest.keys().hasOnly(['date', 'distance'])
+              && d.dailyBest.date is string && d.dailyBest.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+              && d.dailyBest.distance is number && d.dailyBest.distance >= 0))
+        && (!('missions' in d) || (d.missions is list && d.missions.size() <= 10))
+        && (!('updatedAt' in d) || d.updatedAt is timestamp)
+        && (!('totalSparksEarned' in d) || isInt(d.totalSparksEarned, 0, 1000000000))
+        && (!('missionCounter' in d) || isInt(d.missionCounter, 0, 100000000))
+        && (!('tutorialDone' in d) || d.tutorialDone is bool);
+    }
+
+    match /games/urban_runner/players/{uid} {
+      allow read: if isOwner(uid);
+      allow create: if isOwner(uid) && validPlayer(request.resource.data);
+      allow update: if isOwner(uid) && validPlayer(request.resource.data)
+        && request.resource.data.bestDistance >= resource.data.bestDistance
+        && request.resource.data.totalRuns >= resource.data.totalRuns;
+      allow delete: if isOwner(uid);
+    }
+
+    // purchases/{id} is server-only; it and everything else fall through to deny.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

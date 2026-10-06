@@ -1,0 +1,12 @@
+{
+  "name": "urban-runner-firebase",
+  "private": true,
+  "description": "Firestore security rules tests (HANDOVER §7.1). Run inside the Emulator Suite: tools/test_all.sh",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^4.0.1",
+    "firebase": "^11.10.0"
+  }
+}

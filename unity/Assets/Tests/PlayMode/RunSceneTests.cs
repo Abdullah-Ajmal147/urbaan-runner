@@ -82,7 +82,12 @@ namespace Tests.PlayMode
             Time.timeScale = 4f; // 180 game-seconds in ~45 s real time
             Send("session.start", "auto-1", Start(new JObject { ["autoplay"] = true, ["skill"] = 1.0, ["endAfterSeconds"] = 180 }));
             Assert.AreEqual(1, Sent("session.started").Length);
-            yield return WaitFor(() => Sent("session.ended").Length > 0, 240);
+            var maxVisibleSparks = 0;
+            yield return WaitFor(() =>
+            {
+                maxVisibleSparks = Mathf.Max(maxVisibleSparks, _root.Track.VisibleSparks);
+                return Sent("session.ended").Length > 0;
+            }, 240);
 
             var ended = Sent("session.ended");
             Assert.AreEqual(1, ended.Length, "session did not end in time");
@@ -92,6 +97,7 @@ namespace Tests.PlayMode
             Assert.Greater((double)p["distanceM"], 1800);
             Assert.Greater((int)p["sparks"], 50);
             Assert.AreEqual(0, _root.Track.PoolGrowth, "pools grew during the run (Instantiate mid-run)");
+            Assert.Greater(maxVisibleSparks, 0, "instanced sparks were drawn");
         }
 
         [UnityTest]
@@ -153,6 +159,25 @@ namespace Tests.PlayMode
                 if (_root.LastUpdateAllocBytes > worst) worst = _root.LastUpdateAllocBytes;
             }
             Assert.AreEqual(0, total, $"run loop allocated {total} B over 300 frames (worst frame {worst} B)");
+            _root.Session.Quit();
+        }
+
+        /// <summary>Regression (negative test N2): the tutorial prompt was drawn on top of the pause menu.</summary>
+        [UnityTest]
+        public IEnumerator TutorialPrompt_HidesWhilePaused()
+        {
+            Time.timeScale = 3f;
+            var payload = Start(null);
+            payload["mode"] = "tutorial";
+            Send("session.start", "tut-pause", payload);
+            yield return WaitFor(() => _root.Hud.PromptVisible, 30);
+            Assert.IsTrue(_root.Hud.PromptVisible, "the first prompt appears");
+            _root.Session.SetPaused(true);
+            yield return null;
+            Assert.IsFalse(_root.Hud.PromptVisible, "hidden under the pause menu");
+            _root.Session.SetPaused(false);
+            yield return null;
+            Assert.IsTrue(_root.Hud.PromptVisible, "back after resuming");
             _root.Session.Quit();
         }
 

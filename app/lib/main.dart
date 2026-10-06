@@ -1,8 +1,8 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_embed_unity/flutter_embed_unity.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import 'app.dart';
@@ -15,8 +15,19 @@ import 'core/bridge/unity_transport.dart';
 import 'core/iap/store.dart';
 import 'core/remote_config/remote_config.dart';
 import 'core/storage/local_store.dart';
+import 'core/unity/unity_game_view.dart';
 
-Future<void> main() async {
+Future<void> main() => runUrbanRunner(testMode: autoplayFromDefines());
+
+/// `--dart-define=UR_AUTOPLAY=<seconds>` (debug/profile only): every run is played by Unity's bot and ends
+/// after that many seconds. Used by `tools/emulator_smoke` and the combined integration test.
+Map<String, Object?>? autoplayFromDefines() {
+  const seconds = int.fromEnvironment('UR_AUTOPLAY');
+  if (kReleaseMode || seconds <= 0) return null;
+  return {'autoplay': true, 'skill': 1.0, 'endAfterSeconds': seconds};
+}
+
+Future<void> runUrbanRunner({Map<String, Object?>? testMode}) async {
   WidgetsFlutterBinding.ensureInitialized();
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   final navigatorKey = GlobalKey<NavigatorState>();
@@ -30,8 +41,9 @@ Future<void> main() async {
     ads: DebugAdsService(navigatorKey: navigatorKey),
     store: FakeStore(),
     sounds: UiSounds(),
-    gameView: (context, bridge) => EmbedUnity(onMessageFromUnity: bridge.transport.deliver),
+    gameView: (context, bridge) => UnityGameView(onMessageFromUnity: bridge.transport.deliver),
     buildVersion: '${info.version} (${info.buildNumber})',
+    runTestMode: kReleaseMode ? null : testMode,
   );
   runApp(UrbanRunnerApp(
     services: services,

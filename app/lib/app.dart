@@ -7,6 +7,7 @@ import 'core/app_services.dart';
 import 'core/log.dart';
 import 'core/remote_config/remote_config.dart';
 import 'core/storage/local_store.dart';
+import 'core/sync/cloud_sync.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/tokens.dart';
 import 'core/widgets/widgets.dart';
@@ -15,6 +16,8 @@ import 'features/shell/shell.dart';
 import 'features/splash/splash_screen.dart';
 import 'features/store/purchases.dart';
 import 'games/urban_runner/game_state.dart';
+import 'games/urban_runner/profile.dart';
+import 'games/urban_runner/profile_sync.dart';
 
 /// App root: starts services in parallel behind the splash (≤ 2 s), then onboarding (first launch) or Home.
 /// No login wall: everything works offline from the first launch (HANDOVER §4.1).
@@ -44,6 +47,7 @@ class _UrbanRunnerAppState extends State<UrbanRunnerApp> {
   final _messenger = GlobalKey<ScaffoldMessengerState>();
   GameState? _state;
   Purchases? _purchases;
+  CloudSync<PlayerProfile>? _sync;
   bool _onboarded = false;
 
   AppServices get s => widget.services;
@@ -62,6 +66,18 @@ class _UrbanRunnerAppState extends State<UrbanRunnerApp> {
     unawaited(widget.configSource.fetchForNextStart().catchError((Object e) => Log.write(Log.error, 'config fetch: $e')));
     final state = GameState(store: store, analytics: s.analytics, config: s.config, clock: widget.clock);
     await state.load();
+    // Local-first cloud saves (HANDOVER §7.1): never awaited, so the splash never waits on the network.
+    final cloud = s.cloud;
+    if (cloud != null) {
+      final sync = _sync = CloudSync<PlayerProfile>(
+        backend: cloud,
+        adapter: UrbanRunnerSyncAdapter(),
+        readLocal: () => state.profile,
+        applyMerged: state.replaceProfile,
+      );
+      state.onSaved = (_) => sync.schedule();
+      unawaited(sync.syncNow());
+    }
     final purchases = Purchases(store: s.store, state: state, analytics: s.analytics)
       ..notify = (msg) => _messenger.currentState?.showSnackBar(SnackBar(content: Text(msg)));
     s.sounds
@@ -79,6 +95,12 @@ class _UrbanRunnerAppState extends State<UrbanRunnerApp> {
       _purchases = purchases;
       _onboarded = state.profile.onboardingDone;
     });
+  }
+
+  @override
+  void dispose() {
+    _sync?.dispose();
+    super.dispose();
   }
 
   @override

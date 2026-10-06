@@ -20,6 +20,15 @@ namespace UrbanRunner.Sim
     {
         public int SparksCollected;
         public bool Jumped, Slid, LaneChanged, Bumped, ShieldBroke, Crashed;
+        /// <summary>Side bump: bounced back to the previous lane; the Warden closes in.</summary>
+        public bool Stumbled;
+        public bool Landed;
+        /// <summary>Speed passed the next of <see cref="TrackRules.SpeedSteps"/>.</summary>
+        public bool SpeedUp;
+        /// <summary>Dodged a blocking obstacle by changing lanes in the last moment (D32: "Close!").</summary>
+        public bool NearMiss;
+        /// <summary>Picked up today's Lantern Hunt lantern.</summary>
+        public bool HuntFound;
         public bool PowerUp;
         public PowerUpKind PowerUpKind;
 
@@ -51,10 +60,22 @@ namespace UrbanRunner.Sim
         public int Lane { get; private set; } = 1;
         public float X { get; private set; }
         public float Y { get; private set; }
-        public bool Airborne => _jumpT >= 0f;
+        public float VelocityY { get; private set; }
+        public bool Airborne { get; private set; }
         public bool Sliding => _slideT >= 0f;
         public float SlideProgress => Sliding ? _slideT / TrackRules.SlideDuration : 0f;
-        public float JumpProgress => Airborne ? _jumpT / TrackRules.JumpDuration : 0f;
+        /// <summary>0 at take-off, 0.5 at the apex, 1 on landing (for the jump animation).</summary>
+        public float JumpProgress => Airborne ? Math.Max(0f, Math.Min(1f, (TrackRules.JumpVelocity - VelocityY) / (2f * TrackRules.JumpVelocity))) : 0f;
+        /// <summary>Height of the surface under the player (0 = street, TramHeight = a roof).</summary>
+        public float GroundY { get; private set; }
+        public bool OnRoof => !Airborne && GroundY >= TrackRules.TramHeight - 0.01f;
+
+        /// <summary>Seconds left in which a second side bump means the Warden catches the courier.</summary>
+        public float ChaseLeft { get; private set; }
+        /// <summary>The run ended because the Warden caught the courier after two bumps.</summary>
+        public bool Caught { get; private set; }
+        /// <summary>How many of <see cref="TrackRules.SpeedSteps"/> the run has passed.</summary>
+        public int SpeedLevel { get; private set; }
 
         /// <summary>Tutorial: obstacles never hurt (HANDOVER §3.9 "the player can't lose").</summary>
         public bool GodMode { get; set; }
@@ -71,8 +92,13 @@ namespace UrbanRunner.Sim
         public Obstacle CrashedInto { get; private set; }
 
         readonly InputBuffer _buffer = new InputBuffer(TrackRules.InputBufferS);
-        float _jumpT = -1f;
         float _slideT = -1f;
+        bool _slideOnLanding;
+        int _laneFrom = 1;
+        double _laneChangedAt = -10;
+
+        /// <summary>A lane change this soon before reaching a blocking obstacle in the old lane counts as a near miss.</summary>
+        public const float NearMissWindowS = 0.3f;
 
         public RunSimulation(IReadOnlyList<ChunkTemplate> templates, RunConfig config, Upgrades upgrades, ulong seed, RunMode mode = RunMode.Normal)
         {
@@ -82,6 +108,8 @@ namespace UrbanRunner.Sim
             Seed = seed;
             Track = new TrackGenerator(templates, Config, seed);
             Speed = DifficultyCurve.Speed(Config, 0);
+            // Steps below the starting speed are never announced.
+            while (SpeedLevel < TrackRules.SpeedSteps.Length && Speed >= TrackRules.SpeedSteps[SpeedLevel]) SpeedLevel++;
             Track.GenerateUntil(LookAheadM);
         }
 
@@ -105,7 +133,14 @@ namespace UrbanRunner.Sim
         {
             Time += h;
             Speed = DifficultyCurve.Speed(Config, Time);
+            var before = Distance;
             Distance += Speed * h;
+            DetectNearMiss(before);
+            if (SpeedLevel < TrackRules.SpeedSteps.Length && Speed >= TrackRules.SpeedSteps[SpeedLevel])
+            {
+                SpeedLevel++;
+                Events.SpeedUp = true;
+            }
 
             HandleInput();
             MovePlayer(h);
@@ -113,7 +148,20 @@ namespace UrbanRunner.Sim
             CheckObstacles();
             CollectSparks();
             CollectPowerUps();
+            CollectHunt();
         }
+
+        void CollectHunt()
+        {
+            ref var h = ref Track.Hunt;
+            if (!h.Placed || h.Collected) return;
+            if (Math.Abs(h.Z - Distance) > 1.0 || Math.Abs(X - TrackRules.LaneX(h.Lane)) >= 1.2f) return;
+            h.Collected = true;
+            Events.HuntFound = true;
+        }
+
+        /// <summary>Whether this run's hunt lantern was picked up (reported in session.ended).</summary>
+        public bool HuntCollected => Track.Hunt.Collected;
 
         void HandleInput()
         {
@@ -125,6 +173,8 @@ namespace UrbanRunner.Sim
                     _buffer.Consume((float)Time);
                     var target = Lane + (d == SwipeDirection.Left ? -1 : 1);
                     if (target < 0 || target >= TrackRules.LaneCount) { Events.Bumped = true; break; }
+                    _laneFrom = Lane;
+                    _laneChangedAt = Time;
                     Lane = target;
                     Stats.LaneChanges++;
                     Events.LaneChanged = true;
@@ -133,17 +183,22 @@ namespace UrbanRunner.Sim
                     if (Airborne) break; // stays buffered: a jump pressed just before landing still counts
                     _buffer.Consume((float)Time);
                     _slideT = -1f;
-                    _jumpT = 0f;
+                    Airborne = true;
+                    VelocityY = TrackRules.JumpVelocity;
                     Stats.Jumps++;
                     Events.Jumped = true;
                     break;
                 case SwipeDirection.Down:
                     _buffer.Consume((float)Time);
-                    _jumpT = -1f; // fast-fall into a slide
-                    Y = 0f;
-                    _slideT = 0f;
                     Stats.Slides++;
                     Events.Slid = true;
+                    if (Airborne)
+                    {
+                        // Slam down, then slide the moment the feet touch.
+                        VelocityY = -TrackRules.FastFallVelocity;
+                        _slideOnLanding = true;
+                    }
+                    else _slideT = 0f;
                     break;
             }
         }
@@ -154,15 +209,28 @@ namespace UrbanRunner.Sim
             var step = TrackRules.LaneWidth / TrackRules.LaneChangeDuration * h;
             X = Math.Abs(tx - X) <= step ? tx : X + Math.Sign(tx - X) * step;
 
-            if (_jumpT >= 0f)
+            if (Airborne)
             {
-                _jumpT += h;
-                if (_jumpT >= TrackRules.JumpDuration) { _jumpT = -1f; Y = 0f; }
-                else
+                VelocityY -= TrackRules.Gravity * h;
+                Y += VelocityY * h;
+            }
+            GroundY = SurfaceUnder();
+            if (Y <= GroundY)
+            {
+                // Feet on the street, a ramp or a roof (walking up a ramp lifts the player smoothly).
+                if (Airborne && VelocityY <= 0f)
                 {
-                    var u = _jumpT / TrackRules.JumpDuration;
-                    Y = 4f * TrackRules.JumpHeight * u * (1f - u);
+                    Airborne = false;
+                    Events.Landed = true;
+                    if (_slideOnLanding) { _slideT = 0f; _slideOnLanding = false; }
                 }
+                if (!Airborne) { Y = GroundY; VelocityY = 0f; }
+            }
+            else if (!Airborne)
+            {
+                // Ran off the end of a roof: fall.
+                Airborne = true;
+                VelocityY = 0f;
             }
             if (_slideT >= 0f)
             {
@@ -177,9 +245,56 @@ namespace UrbanRunner.Sim
             if (ShieldLeft > 0f) ShieldLeft = Math.Max(0f, ShieldLeft - h);
             if (DoubleLeft > 0f) DoubleLeft = Math.Max(0f, DoubleLeft - h);
             if (InvulnerableLeft > 0f) InvulnerableLeft = Math.Max(0f, InvulnerableLeft - h);
+            if (ChaseLeft > 0f) ChaseLeft = Math.Max(0f, ChaseLeft - h);
         }
 
         public float PlayerTop => Y + (Sliding ? TrackRules.SlidingHeight : TrackRules.StandingHeight);
+
+        /// <summary>
+        /// Highest walkable surface under the player's lane: a ramp always carries the player up; a roof only
+        /// counts when the feet are already near or above it (otherwise it's the tram's side: a hit).
+        /// </summary>
+        float SurfaceUnder()
+        {
+            var lane = (int)Math.Round(X / TrackRules.LaneWidth) + 1;
+            if (lane < 0 || lane >= TrackRules.LaneCount) return 0f;
+            var best = 0f;
+            var rows = Track.Rows;
+            for (var i = 0; i < rows.Count; i++)
+            {
+                ref var row = ref rows[i];
+                if (row.Z > Distance + TrackRules.PlayerHalfDepth) break;
+                if (row.End < Distance - TrackRules.PlayerHalfDepth) continue;
+                var o = row.Effective(lane);
+                if (o != Obstacle.Tram && o != Obstacle.TramRamp) continue;
+                // Under the feet, the surface reaches a bit beyond the roof's end (half a body), like a ledge.
+                var s = Math.Min(Distance + TrackRules.PlayerHalfDepth - row.Z, TrackRules.Length(o));
+                var surface = TrackRules.SurfaceAt(o, s);
+                var onRamp = o == Obstacle.TramRamp && s < TrackRules.RampLength;
+                if (!onRamp && Y < surface - TrackRules.RoofSnap) continue;
+                if (surface > best) best = surface;
+            }
+            return best;
+        }
+
+        /// <summary>The front of a row passed the player this step: was it a last-moment dodge?</summary>
+        void DetectNearMiss(double before)
+        {
+            if (_laneFrom == Lane || Time - _laneChangedAt > NearMissWindowS) return;
+            var rows = Track.Rows;
+            for (var i = 0; i < rows.Count; i++)
+            {
+                ref var row = ref rows[i];
+                var front = row.Z - TrackRules.PlayerHalfDepth;
+                if (front > Distance) break;
+                if (front <= before) continue;
+                if (TrackRules.IsBlocking(row.Effective(_laneFrom)) && !TrackRules.IsBlocking(row.Effective(Lane)))
+                {
+                    Events.NearMiss = true;
+                    _laneChangedAt = -10; // one per dodge
+                }
+            }
+        }
 
         void CheckObstacles()
         {
@@ -197,9 +312,16 @@ namespace UrbanRunner.Sim
                     if (o == Obstacle.None) continue;
                     if (row.Z + TrackRules.Length(o) < back) continue;
                     if (Math.Abs(X - TrackRules.LaneX(lane)) >= TrackRules.PlayerHalfWidth + TrackRules.ObstacleHalfWidth) continue;
-                    if (!Hits(o)) continue;
+                    if (!Hits(o, Distance - row.Z)) continue;
 
                     if (InvulnerableLeft > 0f || GodMode) continue;
+                    // Side bump: moving into a lane beside an obstacle we're already alongside. Bounce back and stumble.
+                    var alongside = Distance - TrackRules.PlayerHalfDepth > row.Z + 0.25;
+                    if (lane == Lane && _laneFrom != Lane && alongside && Math.Abs(X - TrackRules.LaneX(Lane)) > 0.2f)
+                    {
+                        if (Stumble(o)) return;
+                        continue;
+                    }
                     if (ShieldLeft > 0f)
                     {
                         ShieldLeft = 0f;
@@ -214,14 +336,33 @@ namespace UrbanRunner.Sim
             }
         }
 
-        bool Hits(Obstacle o)
+        bool Hits(Obstacle o, double s)
         {
             switch (o)
             {
                 case Obstacle.Crate: return Y < TrackRules.CrateHeight;
                 case Obstacle.Banner: return PlayerTop > TrackRules.BannerBottom;
+                case Obstacle.TramRamp:
+                    if (s + TrackRules.PlayerHalfDepth < TrackRules.RampLength) return false; // on the ramp
+                    return Y < TrackRules.TramHeight - TrackRules.RoofSnap;
+                case Obstacle.Tram: return Y < TrackRules.TramHeight - TrackRules.RoofSnap;
                 default: return true; // stall, van, cart: only a lane change avoids them
             }
+        }
+
+        /// <summary>Bounce back to the lane we came from. Returns true when this second bump means caught.</summary>
+        bool Stumble(Obstacle o)
+        {
+            Lane = _laneFrom;
+            Events.Stumbled = true;
+            if (ChaseLeft > 0f)
+            {
+                Caught = true;
+                Crash(o);
+                return true;
+            }
+            ChaseLeft = TrackRules.ChaseWindowS;
+            return false;
         }
 
         void CollectSparks()
@@ -277,9 +418,8 @@ namespace UrbanRunner.Sim
             CrashedInto = o;
             State = RunState.Crashed;
             Events.Crashed = true;
-            _jumpT = -1f;
             _slideT = -1f;
-            Y = 0f;
+            _slideOnLanding = false;
         }
 
         /// <summary>Test hook (testMode.forceCrashAtSeconds): crash as if an obstacle was hit.</summary>
@@ -304,6 +444,13 @@ namespace UrbanRunner.Sim
                 r.Cleared = 0b111;
             }
             InvulnerableLeft = 2f;
+            ChaseLeft = 0f;
+            Caught = false;
+            // Back on the street (or the roof) in the current lane.
+            _laneFrom = Lane;
+            X = TrackRules.LaneX(Lane);
+            Airborne = Y > SurfaceUnder() + 0.01f;
+            VelocityY = 0f;
             State = RunState.Running;
         }
 

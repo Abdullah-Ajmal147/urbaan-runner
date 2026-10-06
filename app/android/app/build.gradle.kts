@@ -51,4 +51,7 @@ flutter {
 
 dependencies {
     implementation(project(":unityLibrary"))
+    // MainActivity talks to the UnityPlayer (focus for Hybrid Composition, D31). The classes ship inside
+    // unityLibrary already, so they're only needed at compile time here.
+    compileOnly(files("../unityLibrary/libs/unity-classes.jar"))
 }

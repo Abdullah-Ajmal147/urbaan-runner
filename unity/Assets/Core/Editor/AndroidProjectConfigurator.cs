@@ -83,6 +83,19 @@ namespace GameFactory.Editor
             PlayerSettings.allowedAutorotateToLandscapeLeft = false;
             PlayerSettings.allowedAutorotateToLandscapeRight = false;
             PlayerSettings.Android.startInFullscreen = true;
+            // Embedded in Flutter: Flutter owns the Back gesture and forwards it as game.pause. With Unity's
+            // predictive-back support on, the Unity view swallowed Back on Android 16 (negative test N1, D30).
+            PlayerSettings.Android.predictiveBackSupport = false;
+            // No "Made with Unity" splash (optional for Personal licences since Unity 6): the app shows its own
+            // branded loading screen while Unity starts, and the splash only added waiting time (D33).
+            PlayerSettings.SplashScreen.show = false;
+            PlayerSettings.SplashScreen.showUnityLogo = false;
+            // Frame pacing (D31): Swappy presents frames on the display's vsync via Choreographer, so frames arrive
+            // evenly instead of the micro-stutter of a sleep-based targetFrameRate. Verified per device in the
+            // UR_PERF logs (watch for a 30-fps lock reported on some devices with targetFrameRate).
+            PlayerSettings.Android.optimizedFramePacing = true;
+            // ASTC: smaller, GPU-native textures on every OpenGL ES 3 phone (less memory bandwidth).
+            EditorUserBuildSettings.androidBuildSubtarget = MobileTextureSubtarget.ASTC;
 
             SetActiveInputHandlingBoth();
             EnsureUrp();

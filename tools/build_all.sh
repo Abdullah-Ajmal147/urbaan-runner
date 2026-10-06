@@ -18,7 +18,7 @@ want() { printf '%s\n' "${TARGETS[@]}" | grep -qx "$1"; }
 export_unity() { # $1 = emulator|phone
   local flag=(); [ "$1" = emulator ] && flag=(-emulator)
   echo "== export unityLibrary ($1)"
-  ur_unity "export_$1" -nographics -quit -buildTarget Android \
+  UR_SUCCESS_MARKER="Building project for Flutter succeeded" ur_unity "export_$1" -nographics -quit -buildTarget Android \
     -executeMethod BuildScripts.ExportForFlutter -exportPath "$ROOT/app/android/unityLibrary" "${flag[@]}"
 }
 

@@ -39,6 +39,11 @@ namespace UrbanRunner.Game
         public TestMode Test;
         /// <summary>Player's best distance so far (v2, optional): the HUD shows "x m to your best".</summary>
         public int BestDistance;
+        /// <summary>v3 Lantern Hunt: whether this run has a lantern, and its colour index (0–4).</summary>
+        public bool HasHunt;
+        public int HuntColour;
+        /// <summary>v3: lanterns already found today (for the "2 of 5" toast).</summary>
+        public int HuntFound;
 
         public static SessionStart Parse(string sessionId, JObject p)
         {
@@ -69,7 +74,20 @@ namespace UrbanRunner.Game
                 Settings = RunSettings.Parse(p["settings"], RunSettings.Defaults),
                 Test = TestMode.Parse(p["testMode"]),
                 BestDistance = System.Math.Max(0, p.Value<int?>("bestDistance") ?? 0),
+                HuntColour = System.Math.Max(0, ParseHunt(p["hunt"], out var found)),
+                HasHunt = ParseHunt(p["hunt"], out _) >= 0,
+                HuntFound = found,
             };
+        }
+
+        /// <summary>Optional {"colour": 0–4, "found": 0–4}; anything else means no lantern this run.</summary>
+        static int ParseHunt(JToken t, out int found)
+        {
+            found = 0;
+            if (!(t is JObject o)) return -1;
+            var c = o.Value<int?>("colour") ?? -1;
+            found = System.Math.Max(0, System.Math.Min(4, o.Value<int?>("found") ?? 0));
+            return c >= 0 && c <= 4 ? c : -1;
         }
 
         static ulong ParseSeed(JToken t)

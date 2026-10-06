@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:urban_runner/core/storage/local_store.dart';
+import 'package:urban_runner/features/home/hunt_card.dart';
 import 'package:urban_runner/games/urban_runner/game_state.dart';
 import 'package:urban_runner/testing/fake_unity_game.dart';
 import 'package:urban_runner/testing/test_app.dart';
@@ -44,6 +45,9 @@ void main() {
     expect(h.game.received.firstWhere((m) => m.type == 'session.start').payload['mode'], 'tutorial');
     expect(find.text("You're ready"), findsOneWidget);
     expect(find.text('metres'), findsOneWidget);
+    expect(find.textContaining('Best '), findsNothing, reason: 'a lesson never claims a best');
+    expect(find.textContaining('Lesson done'), findsOneWidget);
+    expect(find.textContaining('0 min'), findsNothing);
 
     await tester.tap(find.bySemanticsLabel('Home'));
     await tester.pumpAndSettle();
@@ -109,6 +113,150 @@ void main() {
     expect(h.analytics.named('ad_rewarded_complete').single.params['placement'], 'revive');
     expect(h.analytics.named('revive_offer'), hasLength(1), reason: 'forwarded from Unity');
     expect(find.text('metres'), findsOneWidget);
+  });
+
+  testWidgets('negative: the revive ad fails → no revive, the run ends and Results still show', (tester) async {
+    final h = TestHarness();
+    await boot(tester, h);
+    await onboard(tester);
+    await playOnce(tester); // tutorial
+    await tester.tap(find.bySemanticsLabel('Home'));
+    await tester.pumpAndSettle();
+
+    h.ads.grant = false; // the ad couldn't load / was closed early
+    h.game.requestReviveAd = true;
+    await tester.tap(find.byKey(const Key('play')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(seconds: 2));
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pumpAndSettle(const Duration(milliseconds: 100), EnginePhase.sendSemanticsUpdate, const Duration(seconds: 10));
+
+    final result = h.game.received.where((m) => m.type == 'ad.result').single;
+    expect(result.payload['granted'], isFalse);
+    expect(h.analytics.named('ad_rewarded_fail'), hasLength(1));
+    expect(h.game.resumes, 1, reason: 'Unity is resumed even when the ad fails');
+    expect(find.text('metres'), findsOneWidget, reason: 'the player lands on Results, not stuck');
+  });
+
+  testWidgets('negative: Home and Results settle (no endless animation draining the battery)', (tester) async {
+    final h = TestHarness();
+    await tester.pumpWidget(h.app()); // animations ON, unlike the other flows
+    await tester.pump(const Duration(seconds: 1));
+    // pumpAndSettle throws if something keeps scheduling frames for 30 s.
+    for (var i = 0; i < 3; i++) {
+      await tester.tap(find.byKey(const Key('onboarding_next')));
+      await tester.pumpAndSettle(const Duration(milliseconds: 100), EnginePhase.sendSemanticsUpdate, const Duration(seconds: 30));
+    }
+    await tester.pumpAndSettle(const Duration(milliseconds: 100), EnginePhase.sendSemanticsUpdate, const Duration(seconds: 30));
+    h.game.nextResult = {'distanceM': 900.0};
+    await tester.tap(find.byKey(const Key('play')));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 2));
+    await tester.pumpAndSettle(const Duration(milliseconds: 100), EnginePhase.sendSemanticsUpdate, const Duration(seconds: 30));
+    expect(find.text('metres'), findsOneWidget);
+  });
+
+  testWidgets('negative: Back on a tab returns to Home instead of closing the app', (tester) async {
+    final h = TestHarness();
+    await boot(tester, h);
+    await onboard(tester);
+    await tester.tap(find.text('Store').last);
+    await tester.pumpAndSettle();
+    expect(find.text('Restore purchases'), findsWidgets);
+    final handled = await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(handled, isTrue, reason: 'the app consumed Back instead of exiting');
+    expect(find.byKey(const Key('play')), findsOneWidget, reason: 'back on Home');
+  });
+
+  testWidgets('negative: a day passes while the app is in the background → Home shows the new countdown', (tester) async {
+    tester.view.physicalSize = const Size(1080, 2400); // a phone: the Daily card is on screen
+    tester.view.devicePixelRatio = 2.75;
+    addTearDown(tester.view.reset);
+    var now = DateTime.utc(2026, 10, 5, 12, 30); // 11h30 left in the UTC day
+    final h = TestHarness(clock: () => now);
+    await boot(tester, h);
+    await onboard(tester);
+    expect(find.text('11h left'), findsOneWidget);
+    now = DateTime.utc(2026, 10, 6, 15, 30); // next day, 8h30 left
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pumpAndSettle();
+    expect(find.text('8h left'), findsOneWidget);
+    expect(find.text('11h left'), findsNothing);
+  });
+
+  testWidgets('daily streak: offered on Home after the tutorial, claimed once, flame shows the streak', (tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.75;
+    addTearDown(tester.view.reset);
+    final store = MemoryLocalStore();
+    var h = TestHarness(store: store);
+    await boot(tester, h);
+    await onboard(tester);
+    expect(find.byKey(const Key('claim_streak')), findsNothing, reason: 'never in the first minute (tutorial first)');
+    await playOnce(tester);
+    await tester.tap(find.bySemanticsLabel('Home'));
+    await tester.pumpAndSettle();
+
+    // Next app start: the gift is waiting.
+    await tester.pumpWidget(const SizedBox());
+    h = TestHarness(store: store);
+    await boot(tester, h);
+    expect(find.text('Day 1 streak'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('claim_streak')));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 2));
+    await tester.pumpAndSettle();
+    expect(find.text('Day 1 streak'), findsNothing, reason: 'sheet closed itself');
+    expect(find.bySemanticsLabel('Daily streak, 1 days'), findsOneWidget);
+    final doc = await store.read(GameState.profileKey);
+    expect(doc!['streak'], 1);
+    expect(h.analytics.named('streak_claim'), hasLength(1));
+  });
+
+  testWidgets('Lantern Hunt: Unity gets the colour, a found lantern shows on Results and on Home', (tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.75;
+    addTearDown(tester.view.reset);
+    final h = TestHarness();
+    await boot(tester, h);
+    await onboard(tester);
+    await playOnce(tester); // tutorial: no lantern
+    expect(h.game.received.firstWhere((m) => m.type == 'session.start').payload.containsKey('hunt'), isFalse);
+    await tester.tap(find.bySemanticsLabel('Home'));
+    await tester.pumpAndSettle();
+    expect(find.text('Lantern Hunt'), findsOneWidget);
+
+    h.game.nextResult = {'huntFound': true};
+    await playOnce(tester);
+    final start = h.game.received.where((m) => m.type == 'session.start').last.payload;
+    expect(start['hunt'], {'colour': 0, 'found': 0});
+    expect(find.text('Lantern found · 1 of 5'), findsOneWidget);
+    await tester.tap(find.bySemanticsLabel('Home'));
+    await tester.pumpAndSettle();
+    // Home's card shows one lit lantern.
+    expect(tester.widget<HuntLanterns>(find.byType(HuntLanterns)).found, 1);
+  });
+
+  testWidgets('loading: a branded cover (no spinner) until Unity says the run started, then it is gone', (tester) async {
+    final h = TestHarness(game: FakeUnityGame(runDuration: const Duration(seconds: 5)));
+    await boot(tester, h);
+    await onboard(tester);
+    await tester.tap(find.byKey(const Key('play')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 20)); // the game route builds
+    expect(find.byKey(const Key('loading_cover')), findsOneWidget);
+    expect(find.text('Heading to Lantern City…'), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    await tester.pump(const Duration(milliseconds: 120)); // unity.ready → session.start → session.started
+    await tester.pump(const Duration(milliseconds: 400)); // fade
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(find.byKey(const Key('loading_cover')), findsNothing);
+    expect(find.byKey(const Key('fake_game')), findsOneWidget);
+    await tester.pump(const Duration(seconds: 6)); // let the run finish before the test ends
+    await tester.pumpAndSettle(const Duration(milliseconds: 100), EnginePhase.sendSemanticsUpdate, const Duration(seconds: 10));
   });
 
   testWidgets('Unity never answers: error state with Retry after 10 s', (tester) async {

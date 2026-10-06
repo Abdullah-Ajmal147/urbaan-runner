@@ -58,6 +58,13 @@ class PlayerProfile {
     this.runsSinceInterstitial = 0,
     this.lastInterstitialAtMs = 0,
     this.appSessions = 0,
+    this.streak = 0,
+    this.streakBest = 0,
+    this.lastStreakClaim = '',
+    this.huntDate = '',
+    this.huntFound = 0,
+    this.huntStreak = 0,
+    this.huntLastComplete = '',
   })  : ownedItems = ownedItems ?? {...Items.defaultOwned},
         upgrades = upgrades ?? {'magnet': 0, 'shield': 0, 'double': 0},
         missions = missions ?? Missions.starting(),
@@ -95,6 +102,16 @@ class PlayerProfile {
   int runsSinceInterstitial;
   int lastInterstitialAtMs;
   int appSessions;
+  /// Daily login streak (D32): consecutive days claimed, the best ever, and the UTC day of the last claim.
+  int streak;
+  int streakBest;
+  String lastStreakClaim;
+  /// Lantern Hunt (D32): the UTC day of the current progress, lanterns found that day, the completed-hunt streak
+  /// and the last day it was completed.
+  String huntDate;
+  int huntFound;
+  int huntStreak;
+  String huntLastComplete;
 
   factory PlayerProfile.fresh(DateTime now) => PlayerProfile(createdAt: now, updatedAt: now);
 
@@ -128,6 +145,13 @@ class PlayerProfile {
         'runsSinceInterstitial': runsSinceInterstitial,
         'lastInterstitialAtMs': lastInterstitialAtMs,
         'appSessions': appSessions,
+        'streak': streak,
+        'streakBest': streakBest,
+        'lastStreakClaim': lastStreakClaim,
+        'huntDate': huntDate,
+        'huntFound': huntFound,
+        'huntStreak': huntStreak,
+        'huntLastComplete': huntLastComplete,
       };
 
   factory PlayerProfile.fromJson(Map<String, Object?> j) {
@@ -162,6 +186,13 @@ class PlayerProfile {
       runsSinceInterstitial: i('runsSinceInterstitial'),
       lastInterstitialAtMs: i('lastInterstitialAtMs'),
       appSessions: i('appSessions'),
+      streak: i('streak'),
+      streakBest: i('streakBest'),
+      lastStreakClaim: j['lastStreakClaim'] as String? ?? '',
+      huntDate: j['huntDate'] as String? ?? '',
+      huntFound: i('huntFound').clamp(0, 5),
+      huntStreak: i('huntStreak'),
+      huntLastComplete: j['huntLastComplete'] as String? ?? '',
     );
   }
 
@@ -198,6 +229,15 @@ class PlayerProfile {
       runsSinceInterstitial: runsSinceInterstitial,
       lastInterstitialAtMs: lastInterstitialAtMs,
       appSessions: math.max(appSessions, remote.appSessions),
+      // The newer claim wins as a whole (streak and its date belong together).
+      streak: lastStreakClaim.compareTo(remote.lastStreakClaim) >= 0 ? streak : remote.streak,
+      lastStreakClaim: lastStreakClaim.compareTo(remote.lastStreakClaim) >= 0 ? lastStreakClaim : remote.lastStreakClaim,
+      streakBest: math.max(streakBest, remote.streakBest),
+      // Hunt progress: the later day wins, and on the same day the most lanterns found.
+      huntDate: huntDate.compareTo(remote.huntDate) >= 0 ? huntDate : remote.huntDate,
+      huntFound: huntDate == remote.huntDate ? math.max(huntFound, remote.huntFound) : (huntDate.compareTo(remote.huntDate) > 0 ? huntFound : remote.huntFound),
+      huntStreak: huntLastComplete.compareTo(remote.huntLastComplete) >= 0 ? huntStreak : remote.huntStreak,
+      huntLastComplete: huntLastComplete.compareTo(remote.huntLastComplete) >= 0 ? huntLastComplete : remote.huntLastComplete,
     );
   }
 }

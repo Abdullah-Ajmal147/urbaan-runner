@@ -130,6 +130,54 @@ void main() {
     expect(analytics.named('mission_complete').single.params['mission_id'], oldId);
   });
 
+  // ---- negative cases (double taps, locked items, limits) ----
+
+  test('negative: double-tapping Claim pays a mission once', () async {
+    state.profile.missions[0].claimable = true;
+    final before = state.profile.sparks;
+    final results = await Future.wait([state.claimMission(0), state.claimMission(0)]);
+    expect(results.where((r) => r > 0), hasLength(1));
+    expect(state.profile.sparks - before, results.firstWhere((r) => r > 0));
+  });
+
+  test('negative: double-tapping Buy charges once, and a second buy of an owned item is refused', () async {
+    final dex = Items.byId('dex');
+    state.profile.sparks = dex.price; // exactly enough for one
+    final results = await Future.wait([state.buyItem(dex), state.buyItem(dex)]);
+    expect(results.where((ok) => ok), hasLength(1));
+    expect(state.profile.sparks, 0);
+    expect(await state.buyItem(dex), isFalse);
+    expect(state.profile.sparks, 0, reason: 'never negative');
+  });
+
+  test('negative: not enough sparks, level-locked items and locked equips are refused', () async {
+    state.profile.sparks = 10;
+    expect(await state.buyItem(Items.byId('dex')), isFalse);
+    expect(await state.buyItem(Items.byId('juno')), isFalse, reason: 'Juno unlocks by level, not sparks');
+    await state.equip(Items.byId('juno'));
+    expect(state.profile.selectedCharacter, 'mira', reason: 'cannot equip what you do not own');
+    expect(state.profile.sparks, 10);
+  });
+
+  test('negative: double-tapping an upgrade at the last affordable level buys one level', () async {
+    state.profile.sparks = 1 << 30;
+    for (var i = 0; i < 4; i++) {
+      await state.buyUpgrade(PowerUp.magnet);
+    }
+    final results = await Future.wait([state.buyUpgrade(PowerUp.magnet), state.buyUpgrade(PowerUp.magnet)]);
+    expect(results.where((ok) => ok), hasLength(1));
+    expect(state.profile.upgrades['magnet'], 5);
+    expect(await state.buyUpgrade(PowerUp.magnet), isFalse, reason: 'max level');
+  });
+
+  test('negative: a run with nonsense numbers never breaks the profile', () async {
+    await state.applyRun(run('weird', distance: -50, sparks: -9));
+    expect(state.profile.sparks, greaterThanOrEqualTo(0));
+    expect(state.profile.bestDistance, greaterThanOrEqualTo(0));
+    await state.applyRun(run('nan', distance: double.nan, sparks: 5));
+    expect(state.profile.bestDistance.isNaN, isFalse);
+  });
+
   test('upgrades cost sparks, cap at level 5 and never go below zero', () async {
     expect(await state.buyUpgrade(PowerUp.magnet), isFalse, reason: 'no sparks yet');
     state.profile.sparks = 100000;
