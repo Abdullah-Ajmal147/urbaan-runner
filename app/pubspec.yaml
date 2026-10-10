@@ -48,6 +48,9 @@ dependencies:
   firebase_analytics: 12.6.0
   firebase_crashlytics: 5.4.0
   firebase_remote_config: 6.7.0
+  google_mobile_ads: 9.1.0
+  in_app_purchase: 3.3.1
+  in_app_purchase_android: 0.5.3
 
 dev_dependencies:
   flutter_test:

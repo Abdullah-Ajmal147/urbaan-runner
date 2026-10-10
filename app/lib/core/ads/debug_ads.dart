@@ -15,6 +15,8 @@ class DebugAdsService implements AdsService {
   int adSeconds;
   int rewardedShown = 0;
   int interstitialsShown = 0;
+  /// False simulates "no interstitial loaded" (no fill, offline).
+  bool interstitialReady = true;
 
   @override
   Future<void> init() async {}
@@ -36,9 +38,11 @@ class DebugAdsService implements AdsService {
   }
 
   @override
-  Future<void> showInterstitial() async {
+  Future<bool> showInterstitial() async {
+    if (!interstitialReady) return false;
     interstitialsShown++;
     if (showUi) await _show('Interstitial test ad');
+    return true;
   }
 
   Future<void> _show(String label) async {

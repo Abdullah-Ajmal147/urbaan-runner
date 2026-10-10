@@ -34,6 +34,8 @@ android {
         // flag during build.
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        // Google's official AdMob test app ID; never a real ID in debug builds (CLAUDE.md)
+        manifestPlaceholders["admobAppId"] = "ca-app-pub-3940256099942544~3347511713"
     }
 
     buildTypes {
@@ -41,6 +43,9 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            // The real AdMob app ID comes only from the release command line (owner task 5)
+            (project.findProperty("urAdmobAppId") as String?)?.let { manifestPlaceholders["admobAppId"] = it }
         }
     }
 }

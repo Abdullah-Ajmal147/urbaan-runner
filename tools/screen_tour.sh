@@ -22,10 +22,17 @@ LOGCAT="$OUT/logcat.txt"
 ur_logcat_start "$LOGCAT"
 
 FAIL=0
-shot() { ur_screenshot "$OUT/$1.png"; echo "  shot $1"; }
+shot() {
+  ur_screenshot "$OUT/$1.png"; echo "  shot $1"
+  # Fail fast: without this a crash at launch left the tour photographing the launcher (D35).
+  if ! ur_app_alive "$PKG"; then
+    ur_logcat_stop; ur_scan_crashes "$LOGCAT" | head -20
+    echo "TOUR FAILED (the app is not running at $1) → $OUT"; exit 1
+  fi
+}
 step() { "$@" || FAIL=1; } # a missed tap fails the tour instead of drifting into other screens
 # The game screen is Unity: Flutter's bottom tabs disappear while it's up.
-in_game() { [ -z "$(ur_ui_find "Missions")" ]; }
+in_game() { ur_app_alive "$PKG" && [ -z "$(ur_ui_find "Missions")" ]; }
 swipe() { # left|right|up|down
   case "$1" in
     left)  adbx shell input swipe 760 1500 260 1500 120 ;;
@@ -50,7 +57,8 @@ step ur_tap_text "Start your first run" 10
 for i in $(seq 1 20); do in_game && break; sleep 1; done
 if ! in_game; then echo "UR_ERROR the game screen never opened"; ur_logcat_stop; exit 1; fi
 sleep 6; shot 06_game_tutorial
-for cycle in 1 2 3; do
+# Five cycles: a prompt ignores a swipe that arrives before it is shown, so extra cycles keep the tour from stalling.
+for cycle in 1 2 3 4 5; do
   for d in left right up down; do swipe "$d"; sleep 2.2; done
   [ "$cycle" = 1 ] && shot 07_tutorial
 done

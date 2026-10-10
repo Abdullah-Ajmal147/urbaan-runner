@@ -196,3 +196,19 @@ The owner created the project on 2026-10-10. Claude set it up in the console, an
   - With the real project, the app uses Firebase Analytics, Firestore cloud saves and Remote Config. Without `google-services.json`, or if init fails, it uses the local-only debug services. This is the same code path the tests use.
   - Gradle applies the google-services and Crashlytics plugins only when the file exists, so a fresh clone still builds.
   - The player document now also syncs the streak and hunt fields: `streak`, `streakBest`, `lastStreakClaim`, `huntDate`, `huntFound`, `huntStreak`, `huntLastComplete`. The rules validate them, with a new rules test and a cross-device sync test.
+
+### D35 · Ads and purchases (M5) with Google test IDs
+- **Services:** `main.dart` now uses `AdMobAdsService` (google_mobile_ads, UMP consent) and `PlayStore` (in_app_purchase). Tests keep `DebugAdsService` and `FakeStore`.
+- **Test IDs only:**
+  - The ad units are Google's official test units, unless a release build passes `--dart-define=UR_ADMOB_REWARDED/UR_ADMOB_INTERSTITIAL`.
+  - The AdMob app ID is Google's test ID through a manifest placeholder. Only a release build with `-PurAdmobAppId=…` replaces it (owner task 5).
+- **Consent:** the UMP consent check runs once per app start and is shared by onboarding and `init()`, and ads are requested only after it allows them. Settings shows "Privacy options" when UMP says it's required.
+- **Bug fix (regression flow test):** `showInterstitial()` now returns whether an ad was actually shown. Before, Results counted an interstitial as shown even when none had loaded (no fill, offline), which started the 120 s / 3-run cool-down for an ad nobody saw.
+- **Purchases:** until `remove_ads` and `starter_pack` exist in Play Console (owner task 6), Play returns no products and the Store screen shows them as unavailable. A real purchase test needs an internal testing track.
+- **Found on the emulator, fixed with regressions:**
+  - **Release crash at launch.** google_mobile_ads brings in WorkManager, whose Room database is opened through the generated `WorkDatabase_Impl()` constructor by reflection. R8 full mode (AGP 9) removed that constructor, so every launch crashed with "Failed to create an instance of androidx.work.impl.WorkDatabase".
+    - **Fix:** keep rules in `app/android/app/proguard-rules.pro`.
+    - **Regression:** `tools/screen_tour.sh` now fails as soon as the app process is gone. Before, it kept photographing the launcher, because its "in game" check only looked for the missing Missions tab.
+  - **Ad-revive in the first session.** Unity's revive card is "Watch a short ad", and it was offered in the tutorial run and the rest of the first session. §7.4 allows no ads there.
+    - **Fix:** `session.start` now sends `revive_enabled: false` for the tutorial and while `appSessions <= 1`, with no Unity change.
+    - **Regressions:** a unit test, plus a flow test in which a crash during the first session asks for no ad. The fake Unity respects the switch like the real one.

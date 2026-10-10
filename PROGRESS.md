@@ -1,6 +1,6 @@
 # Progress: Urban Runner
 
-_Last updated: 2026-10-10. Tests: Unity EditMode 126/126, PlayMode 8/8, Flutter 93/93, Firestore rules 10/10, tools 5/5._
+_Last updated: 2026-10-10. Tests: Unity EditMode 126/126, PlayMode 8/8, Flutter 98/98, Firestore rules 10/10, tools 5/5._
 
 | Milestone | Status | Exit test |
 | --- | --- | --- |
@@ -9,7 +9,7 @@ _Last updated: 2026-10-10. Tests: Unity EditMode 126/126, PlayMode 8/8, Flutter 
 | M2 Feel, polish, original look | ✅ done 2026-10-06 | see below; performance re-measured on a real phone is the open item |
 | M3 Flutter shell + integration | ✅ done 2026-10-06 | widget/flow tests; on-device flows; real phone APK tested by the owner |
 | M4 Firebase | ✅ done 2026-10-10 | project `urban-runner-5c944` (D34); anonymous auth + Firestore sync verified on the emulator against the real project; rules 10/10 |
-| M5 Monetization | 🟡 code drafted | AdMob (test IDs + UMP) and Play Billing are written but not yet wired |
+| M5 Monetization | ✅ done 2026-10-10 (test ads) | real Google test ads on the emulator: revive granted once, interstitial paced, 0 ads in the first session; FakeStore state machine; real ad/product IDs wait on owner tasks 5–6 (D35) |
 | M6 Full QA + hand-back | 🟡 started | negative-test pass done (`docs/qa-negative-tests.md`); release folder still to do |
 
 Test builds for the owner's phone: `release/test-builds/UrbanRunner-0.1.0-phone-arm64.apk` (most phones) and `…-phone-arm32.apk` (older phones). These are not committed; rebuild them with the commands in "How to rebuild" below.
@@ -85,9 +85,9 @@ Test builds for the owner's phone: `release/test-builds/UrbanRunner-0.1.0-phone-
 3. **M4 follow-ups:**
    - Confirm in the console that Crashlytics shows up after the first real-phone session.
    - Add the release SHA-1 once the upload key exists (owner task 9).
-4. **M5 Monetization:**
-   - Add `google_mobile_ads` (Google test IDs, UMP consent, privacy options in Settings) and `in_app_purchase` (code drafted in `docs/drafts/admob_ads.dart` and `docs/drafts/play_store.dart`).
-   - Emulator test: a test ad grants once; no ads in the tutorial or first session.
+4. **M5 follow-ups (need the owner's accounts):**
+   - Real AdMob IDs in the release build (`-PurAdmobAppId=…`, `--dart-define=UR_ADMOB_REWARDED/INTERSTITIAL=…`).
+   - Create the Play Console products, then do a purchase test on an internal testing track.
 5. **Retention, next ideas:**
    - Local notifications ("your daily gift is ready", "lantern hunt resets soon")
    - Weekly missions and a season pass-lite
@@ -121,6 +121,13 @@ source tools/env.sh && UR_SUCCESS_MARKER="Building project for Flutter succeeded
 ## History
 - **M0 (2026-10-05):** toolchain, repo, Unity URP project, Flutter shell, and the bridge spike (7/7 checks on the x86-64 emulator).
 - **M1 (2026-10-05):** a deterministic C# simulation, the generator with fairness guarantees, the autoplay bot, the session protocol and the standalone host.
+- **M5 (2026-10-10):**
+  - Google Mobile Ads (UMP consent, Google test IDs) and Play Billing are in the app (D35).
+  - Found and fixed with regression tests:
+    - A release crash at launch (R8 removed WorkManager's Room constructor).
+    - An ad-revive offer in the tutorial and first session.
+    - An interstitial counted as shown when none had loaded.
+  - The screen tour now fails immediately on a crash.
 - **M4 (2026-10-10):**
   - Created the Firebase project and connected the app to it (D34): anonymous auth, Firestore cloud saves (including the streak and hunt), Analytics, Crashlytics and Remote Config.
   - Without `google-services.json` the app still builds and runs local-only.

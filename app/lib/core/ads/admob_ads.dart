@@ -25,6 +25,7 @@ class AdMobAdsService implements AdsService {
 
   final Duration loadTimeout;
   bool _initialized = false;
+  Future<void>? _consent; // one consent check per app start, shared by onboarding and init()
   bool _canRequest = false;
   bool _privacyRequired = false;
   RewardedAd? _rewarded;
@@ -43,7 +44,9 @@ class AdMobAdsService implements AdsService {
   }
 
   @override
-  Future<void> gatherConsent() {
+  Future<void> gatherConsent() => _consent ??= _gatherConsent();
+
+  Future<void> _gatherConsent() {
     final done = Completer<void>();
     ConsentInformation.instance.requestConsentInfoUpdate(
       ConsentRequestParameters(),
@@ -142,11 +145,11 @@ class AdMobAdsService implements AdsService {
   }
 
   @override
-  Future<void> showInterstitial() async {
+  Future<bool> showInterstitial() async {
     final ad = _interstitial;
     if (ad == null) {
       _loadInterstitial();
-      return;
+      return false;
     }
     _interstitial = null;
     final closed = Completer<void>();
@@ -163,5 +166,6 @@ class AdMobAdsService implements AdsService {
     await ad.show();
     await closed.future;
     _loadInterstitial();
+    return true;
   }
 }

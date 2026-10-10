@@ -79,6 +79,9 @@ ur_logcat_start() { # ur_logcat_start <file>
   UR_LOGCAT_PID=$!
 }
 
+# Whether <pkg> has a running process (a crashed or killed app has none).
+ur_app_alive() { [ -n "$(adbx shell pidof "$1" 2>/dev/null | tr -d '\r')" ]; }
+
 ur_logcat_stop() { [ -n "${UR_LOGCAT_PID:-}" ] && kill "$UR_LOGCAT_PID" 2>/dev/null; UR_LOGCAT_PID=; }
 
 # Crash markers from HANDOVER §10.2. Prints matches; returns 1 if any were found.

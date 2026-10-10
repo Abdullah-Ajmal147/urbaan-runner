@@ -6,14 +6,14 @@ import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import 'app.dart';
-import 'core/ads/debug_ads.dart';
+import 'core/ads/admob_ads.dart';
 import 'core/analytics/analytics.dart';
 import 'core/app_services.dart';
 import 'core/audio/ui_sounds.dart';
 import 'core/bridge/unity_bridge.dart';
 import 'core/bridge/unity_transport.dart';
 import 'core/firebase/firebase_services.dart';
-import 'core/iap/store.dart';
+import 'core/iap/play_store.dart';
 import 'core/remote_config/remote_config.dart';
 import 'core/storage/local_store.dart';
 import 'core/unity/unity_game_view.dart';
@@ -41,8 +41,10 @@ Future<void> runUrbanRunner({Map<String, Object?>? testMode}) async {
     bridge: UnityBridge(EmbedUnityTransport()),
     analytics: analytics,
     config: RemoteConfig(UrConfig.specs, analytics: analytics),
-    ads: DebugAdsService(navigatorKey: navigatorKey),
-    store: FakeStore(),
+    // Google Mobile Ads with Google's test units (real units only via release --dart-define, owner task 5)
+    ads: AdMobAdsService(),
+    // Play Billing; until the products exist in Play Console the Store screen shows them as unavailable
+    store: PlayStore(),
     sounds: UiSounds(),
     gameView: (context, bridge) => UnityGameView(onMessageFromUnity: bridge.transport.deliver),
     buildVersion: '${info.version} (${info.buildNumber})',

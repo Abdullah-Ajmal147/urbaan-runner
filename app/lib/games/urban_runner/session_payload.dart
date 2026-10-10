@@ -16,6 +16,8 @@ abstract final class SessionPayload {
     final huntColour = today == null || mode == 'tutorial'
         ? null
         : LanternHunt.nextColour(today: today, huntDate: profile.huntDate, found: profile.huntFound);
+    // Revive is "watch a short ad", and there are no ads in the tutorial or the first app session (§7.4, D35).
+    final noAds = mode == 'tutorial' || profile.appSessions <= 1;
     return {
         'seed': seed,
         'mode': mode,
@@ -31,7 +33,7 @@ abstract final class SessionPayload {
           'max_speed': config.number('max_speed'),
           'speed_ramp_per_min': config.number('speed_ramp_per_min'),
           'revives_per_run': config.integer('revives_per_run'),
-          'revive_enabled': config.flag('revive_enabled'),
+          'revive_enabled': config.flag('revive_enabled') && !noAds,
         },
         'settings': profile.settings.toUnity(),
         'bestDistance': profile.bestDistance,

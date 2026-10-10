@@ -30,6 +30,20 @@ void main() {
     now = DateTime.utc(2026, 10, 5, 12);
   });
 
+  test('regression: no revive offer (it is "watch a short ad") in the tutorial or the first app session', () async {
+    final s = await boot(); // load() counts this as app session 1
+    Map<String, Object?> cfg(String mode) =>
+        SessionPayload.build(profile: s.profile, config: config, mode: mode, seed: 1, today: s.todayKey)['config'] as Map<String, Object?>;
+    expect(cfg('tutorial')['revive_enabled'], isFalse);
+    expect(cfg('normal')['revive_enabled'], isFalse, reason: 'first session: no ads at all (§7.4)');
+    final s2 = await boot(); // the next app start
+    expect(s2.profile.appSessions, 2);
+    Map<String, Object?> cfg2(String mode) =>
+        SessionPayload.build(profile: s2.profile, config: config, mode: mode, seed: 1, today: s2.todayKey)['config'] as Map<String, Object?>;
+    expect(cfg2('normal')['revive_enabled'], isTrue);
+    expect(cfg2('tutorial')['revive_enabled'], isFalse);
+  });
+
   test('session.start asks Unity for the next colour, never in the tutorial, none once the hunt is done', () async {
     final s = await boot();
     Map<String, Object?> payload(String mode) =>

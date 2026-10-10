@@ -13,8 +13,9 @@ abstract class AdsService {
   /// Shows a rewarded ad; resolves true only if the reward was earned.
   Future<bool> showRewarded(String placement);
 
-  /// Shows an interstitial if one is loaded. Resolves when it is closed (or immediately if none).
-  Future<void> showInterstitial();
+  /// Shows an interstitial if one is loaded. Resolves when it is closed: true if one was shown, false
+  /// (immediately) if none was ready, so pacing only counts ads the player actually saw.
+  Future<bool> showInterstitial();
 }
 
 /// Pure interstitial rules (HANDOVER §7.4); every number comes from Remote Config (§7.3).

@@ -34,6 +34,37 @@ void main() {
     await tester.pumpAndSettle(const Duration(milliseconds: 100), EnginePhase.sendSemanticsUpdate, const Duration(seconds: 10));
   }
 
+  void tallScreen(WidgetTester tester) {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.75;
+    addTearDown(tester.view.reset);
+  }
+
+  Future<void> claimGiftIfOffered(WidgetTester tester) async {
+    if (find.byKey(const Key('claim_streak')).evaluate().isEmpty) return;
+    await tester.tap(find.byKey(const Key('claim_streak')));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 2));
+    await tester.pumpAndSettle();
+  }
+
+  /// Fresh install → onboarding → tutorial → Home, then the app restarts: the second app session,
+  /// the first one where ads may appear (§7.4).
+  Future<TestHarness> secondSession(WidgetTester tester) async {
+    final store = MemoryLocalStore();
+    final first = TestHarness(store: store);
+    await boot(tester, first);
+    await onboard(tester);
+    await playOnce(tester);
+    await tester.tap(find.bySemanticsLabel('Home'));
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(const SizedBox());
+    final h = TestHarness(store: store);
+    await boot(tester, h);
+    await claimGiftIfOffered(tester);
+    return h;
+  }
+
   testWidgets('fresh install → onboarding → first run is the tutorial → results → home', (tester) async {
     final h = TestHarness();
     await boot(tester, h);
@@ -87,13 +118,23 @@ void main() {
     expect(find.textContaining('1,450'), findsWidgets);
   });
 
-  testWidgets('revive: Unity asks for an ad, Flutter shows it, grants once, the run continues', (tester) async {
+  testWidgets('regression: the first session offers no ad-revive, even when the courier crashes', (tester) async {
     final h = TestHarness();
     await boot(tester, h);
     await onboard(tester);
-    await playOnce(tester);
+    await playOnce(tester); // tutorial
     await tester.tap(find.bySemanticsLabel('Home'));
     await tester.pumpAndSettle();
+    h.game.requestReviveAd = true; // Unity would offer "Keep running?" if Flutter allowed it
+    await playOnce(tester);
+    expect(h.game.received.where((m) => m.type == 'ad.result'), isEmpty);
+    expect(h.ads.rewardedShown, 0, reason: 'no ads in the tutorial or the first session (§7.4)');
+    expect(find.text('metres'), findsOneWidget);
+  });
+
+  testWidgets('revive: Unity asks for an ad, Flutter shows it, grants once, the run continues', (tester) async {
+    tallScreen(tester);
+    final h = await secondSession(tester);
 
     h.game.requestReviveAd = true;
     await tester.tap(find.byKey(const Key('play')));
@@ -115,13 +156,97 @@ void main() {
     expect(find.text('metres'), findsOneWidget);
   });
 
-  testWidgets('negative: the revive ad fails → no revive, the run ends and Results still show', (tester) async {
+  testWidgets('regression: the first session offers no ad-revive, even when the courier crashes', (tester) async {
     final h = TestHarness();
     await boot(tester, h);
     await onboard(tester);
     await playOnce(tester); // tutorial
     await tester.tap(find.bySemanticsLabel('Home'));
     await tester.pumpAndSettle();
+    h.game.requestReviveAd = true; // Unity would offer "Keep running?" if Flutter allowed it
+    await playOnce(tester);
+    expect(h.game.received.where((m) => m.type == 'ad.result'), isEmpty);
+    expect(h.ads.rewardedShown, 0, reason: 'no ads in the tutorial or the first session (§7.4)');
+    expect(find.text('metres'), findsOneWidget);
+  });
+
+  testWidgets('revive: Unity asks for an ad, Flutter shows it, grants once, the run continues', (tester) async {
+    tallScreen(tester);
+    final h = await secondSession(tester);
+
+    h.game.requestReviveAd = true;
+    await tester.tap(find.byKey(const Key('play')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100)); // unity.ready → session.start
+    await tester.pump(const Duration(milliseconds: 150)); // fake asks for the revive ad
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(find.textContaining('Rewarded test ad'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 2)); // the test ad closes itself
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pumpAndSettle(const Duration(milliseconds: 100), EnginePhase.sendSemanticsUpdate, const Duration(seconds: 10));
+
+    final result = h.game.received.where((m) => m.type == 'ad.result').single;
+    expect(result.payload['granted'], isTrue);
+    expect(h.game.pauses, 1, reason: 'Unity paused for the full-screen ad');
+    expect(h.game.resumes, 1);
+    expect(h.analytics.named('ad_rewarded_complete').single.params['placement'], 'revive');
+    expect(h.analytics.named('revive_offer'), hasLength(1), reason: 'forwarded from Unity');
+    expect(find.text('metres'), findsOneWidget);
+  });
+
+  testWidgets('interstitials: none in the first session; a missing ad does not start the cool-down (M5)', (tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.75;
+    addTearDown(tester.view.reset);
+    Future<void> claimGiftIfOffered() async {
+      if (find.byKey(const Key('claim_streak')).evaluate().isEmpty) return;
+      await tester.tap(find.byKey(const Key('claim_streak')));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pumpAndSettle();
+    }
+
+    final store = MemoryLocalStore();
+    final h = TestHarness(store: store);
+    await boot(tester, h);
+    await onboard(tester);
+    for (var i = 0; i < 4; i++) {
+      await playOnce(tester); // tutorial + 3 normal runs, all in the first app session
+      await tester.tap(find.bySemanticsLabel('Home'));
+      await tester.pumpAndSettle();
+      await claimGiftIfOffered();
+    }
+    expect(h.ads.interstitialsShown, 0, reason: 'never in the first session or the tutorial (§7.4)');
+
+    // Second app session, past interstitial_first_after_runs: the first interstitial is due.
+    final h2 = TestHarness(store: store);
+    await tester.pumpWidget(const SizedBox());
+    await boot(tester, h2);
+    await claimGiftIfOffered();
+    h2.ads.interstitialReady = false; // no fill / offline
+    await playOnce(tester);
+    await tester.tap(find.bySemanticsLabel('Home'));
+    await tester.pumpAndSettle();
+    expect(h2.ads.interstitialsShown, 0);
+    expect((await store.read(GameState.profileKey))!['lastInterstitialAtMs'], 0, reason: 'regression: an ad nobody saw must not count');
+    expect(h2.analytics.named('ad_interstitial_show'), isEmpty);
+
+    h2.ads.interstitialReady = true; // it loaded meanwhile: the very next exit shows it
+    await playOnce(tester);
+    await tester.tap(find.bySemanticsLabel('Home'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(find.textContaining('Interstitial test ad'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 2));
+    await tester.pumpAndSettle();
+    expect(h2.ads.interstitialsShown, 1);
+    expect((await store.read(GameState.profileKey))!['lastInterstitialAtMs'], greaterThan(0));
+    expect(h2.game.pauses, greaterThanOrEqualTo(1), reason: 'Unity paused for the full-screen ad');
+  });
+
+  testWidgets('negative: the revive ad fails → no revive, the run ends and Results still show', (tester) async {
+    tallScreen(tester);
+    final h = await secondSession(tester);
 
     h.ads.grant = false; // the ad couldn't load / was closed early
     h.game.requestReviveAd = true;

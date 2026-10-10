@@ -104,10 +104,11 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
       nowMs: DateTime.now().millisecondsSinceEpoch,
     );
     if (!show) return;
-    s.analytics.log('ad_interstitial_show', {'runs_since_last': p.runsSinceInterstitial});
     s.bridge.transport.pause();
-    await s.ads.showInterstitial();
+    final shown = await s.ads.showInterstitial();
     s.bridge.transport.resume();
+    if (!shown) return; // nothing was loaded: don't start the cool-down for an ad nobody saw
+    s.analytics.log('ad_interstitial_show', {'runs_since_last': p.runsSinceInterstitial});
     await state.markInterstitialShown();
   }
 

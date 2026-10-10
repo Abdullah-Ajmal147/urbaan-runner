@@ -63,7 +63,9 @@ class FakeUnityGame implements UnityTransport {
         _sessionId = m.sessionId;
         _startPayload = m.payload;
         _emit(BridgeMessage('session.started', sessionId: _sessionId));
-        if (requestReviveAd) {
+        // Like Unity: no "Keep running?" offer when Flutter switched revive off for this run.
+        final reviveOn = (m.payload['config'] as Map?)?['revive_enabled'] != false;
+        if (requestReviveAd && reviveOn) {
           Timer(runDuration ~/ 2, () {
             _emit(BridgeMessage('analytics.event', sessionId: _sessionId, payload: {'name': 'revive_offer', 'params': {'session_id': _sessionId}}));
             _emit(BridgeMessage('ad.request', sessionId: _sessionId, payload: {'placement': 'revive'}));
