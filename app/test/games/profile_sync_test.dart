@@ -9,8 +9,9 @@ import 'package:urban_runner/games/urban_runner/profile_sync.dart';
 import 'package:urban_runner/games/urban_runner/profile.dart';
 import 'package:urban_runner/games/urban_runner/run_result.dart';
 
-RunResult run(String id, {double distance = 1000, int sparks = 100}) => RunResult(
-    sessionId: id, mode: 'normal', seed: 1, distanceM: distance, sparks: sparks, durationS: 60, cause: 'obstacle', revivesUsed: 0, stats: const RunStats());
+RunResult run(String id, {double distance = 1000, int sparks = 100, bool hunt = false}) => RunResult(
+    sessionId: id, mode: 'normal', seed: 1, distanceM: distance, sparks: sparks, durationS: 60, cause: 'obstacle', revivesUsed: 0,
+    stats: const RunStats(), huntFound: hunt);
 
 /// The same checks as firebase/firestore.rules, so the sync code is tested against what the server enforces.
 String? firestoreLikeRules(String path, Map<String, Object?>? before, Map<String, Object?> after) {
@@ -94,6 +95,27 @@ void main() {
     a.now = t0.add(const Duration(minutes: 10));
     await a.sync.syncNow();
     expect(a.state.profile.selectedTrail, b.state.profile.selectedTrail);
+  });
+
+  test('the daily streak and Lantern Hunt progress follow the player to a new device (M4)', () async {
+    final a = await Device(cloud, t0).boot();
+    expect(await a.state.claimStreak(), greaterThan(0));
+    await a.state.applyRun(run('h1', hunt: true));
+    await a.state.applyRun(run('h2', hunt: true));
+    expect(await a.sync.syncNow(), isTrue);
+    final doc = cloud.docs['games/urban_runner/players/test-uid']!;
+    expect(doc['streak'], 1);
+    expect(doc['lastStreakClaim'], '2026-10-05');
+    expect(doc['huntFound'], 2);
+    expect(doc['huntDate'], '2026-10-05');
+
+    // Reinstall / new phone, same account: today's gift is not offered twice and the hunt continues at 2/5.
+    final b = await Device(cloud, t0.add(const Duration(hours: 1))).boot();
+    await b.sync.syncNow();
+    expect(b.state.profile.streak, 1);
+    expect(b.state.profile.lastStreakClaim, '2026-10-05');
+    expect(b.state.profile.huntFound, 2);
+    expect(await b.state.claimStreak(), 0, reason: 'already claimed today on the other device');
   });
 
   test('offline first launch → play → reconnect leaves the profile synced (M4 exit)', () async {

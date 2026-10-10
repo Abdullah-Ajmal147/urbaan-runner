@@ -6,7 +6,7 @@ import 'profile.dart';
 
 /// Urban Runner's cloud layout (HANDOVER §7.1):
 ///   users/{uid}                         shared profile: balance, XP, selections, owned items, settings
-///   games/urban_runner/players/{uid}    this game's progress: best, runs, daily best, missions
+///   games/urban_runner/players/{uid}    this game's progress: best, runs, daily best, missions, streak, hunt
 /// Device-only fields (processed session ids, ad pacing, Remove Ads, which Play restores) stay local.
 class UrbanRunnerSyncAdapter implements SyncAdapter<PlayerProfile> {
   /// The rules allow sparks to rise by at most this much per write (firebase/firestore.rules).
@@ -60,6 +60,13 @@ class UrbanRunnerSyncAdapter implements SyncAdapter<PlayerProfile> {
         'missions': v.missions.map((m) => m.toJson()).toList(),
         'missionCounter': v.missionCounter,
         'tutorialDone': v.tutorialDone,
+        'streak': v.streak,
+        'streakBest': v.streakBest,
+        'lastStreakClaim': v.lastStreakClaim,
+        'huntDate': v.huntDate,
+        'huntFound': v.huntFound,
+        'huntStreak': v.huntStreak,
+        'huntLastComplete': v.huntLastComplete,
         'updatedAt': v.updatedAt.toUtc(),
       },
     };

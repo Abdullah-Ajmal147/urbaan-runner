@@ -59,6 +59,15 @@ describe('validation', () => {
     await assertFails(setDoc(doc(d, 'games/urban_runner/players/alice'), player({ totalRuns: 1.5 })));
     await assertFails(setDoc(doc(d, 'games/urban_runner/players/alice'), player({ dailyBest: { date: '5/10/2026', distance: 1 } })));
   });
+  test('streak and Lantern Hunt fields are accepted and validated', async () => {
+    const d = db('alice');
+    const ok = { streak: 3, streakBest: 7, lastStreakClaim: '2026-10-10', huntDate: '2026-10-10', huntFound: 5, huntStreak: 2, huntLastComplete: '' };
+    await assertSucceeds(setDoc(doc(d, 'games/urban_runner/players/alice'), player(ok)));
+    await assertFails(setDoc(doc(d, 'games/urban_runner/players/alice'), player({ ...ok, huntFound: 6 })));
+    await assertFails(setDoc(doc(d, 'games/urban_runner/players/alice'), player({ ...ok, streak: -1 })));
+    await assertFails(setDoc(doc(d, 'games/urban_runner/players/alice'), player({ ...ok, lastStreakClaim: 'yesterday' })));
+    await assertFails(setDoc(doc(d, 'games/urban_runner/players/alice'), player({ ...ok, huntStreak: '2' })));
+  });
   test('createdAt can never change', async () => {
     await seed('users/alice', user());
     await assertFails(updateDoc(doc(db('alice'), 'users/alice'), { createdAt: Timestamp.now() }));

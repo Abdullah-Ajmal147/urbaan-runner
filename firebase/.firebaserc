@@ -1,1 +1,1 @@
-{ "projects": { "default": "demo-urban-runner" } }
+{ "projects": { "default": "demo-urban-runner", "prod": "urban-runner-5c944" } }

@@ -42,6 +42,12 @@ dependencies:
   audioplayers: 6.8.1
   url_launcher: 6.3.3
   package_info_plus: 10.2.2
+  firebase_core: 4.15.0
+  firebase_auth: 6.7.0
+  cloud_firestore: 6.10.0
+  firebase_analytics: 12.6.0
+  firebase_crashlytics: 5.4.0
+  firebase_remote_config: 6.7.0
 
 dev_dependencies:
   flutter_test:

@@ -4,6 +4,7 @@ Ready-to-wire code for M4 and M5. It lives here and not in `app/lib`, because th
 
 | File | Goes to | Milestone |
 | --- | --- | --- |
-| `firebase_services.dart` | `app/lib/core/firebase/` | M4 |
 | `admob_ads.dart` | `app/lib/core/ads/` | M5 |
 | `play_store.dart` | `app/lib/core/iap/` | M5 |
+
+`firebase_services.dart` was moved to `app/lib/core/firebase/` in M4 (2026-10-10).

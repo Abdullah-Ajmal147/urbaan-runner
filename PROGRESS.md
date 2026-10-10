@@ -1,6 +1,6 @@
 # Progress: Urban Runner
 
-_Last updated: 2026-10-06. Tests: Unity EditMode 126/126, PlayMode 8/8, Flutter 92/92, Firestore rules 9/9, tools 5/5._
+_Last updated: 2026-10-10. Tests: Unity EditMode 126/126, PlayMode 8/8, Flutter 93/93, Firestore rules 10/10, tools 5/5._
 
 | Milestone | Status | Exit test |
 | --- | --- | --- |
@@ -8,7 +8,7 @@ _Last updated: 2026-10-06. Tests: Unity EditMode 126/126, PlayMode 8/8, Flutter 
 | M1 Core gameplay (Unity standalone) | ✅ done 2026-10-05 | EditMode 79/79, PlayMode 5/5, 5 min autoplay clean |
 | M2 Feel, polish, original look | ✅ done 2026-10-06 | see below; performance re-measured on a real phone is the open item |
 | M3 Flutter shell + integration | ✅ done 2026-10-06 | widget/flow tests; on-device flows; real phone APK tested by the owner |
-| M4 Firebase | 🟡 partly done | rules 9/9 and the sync engine are done; Firebase packages still to plug in |
+| M4 Firebase | ✅ done 2026-10-10 | project `urban-runner-5c944` (D34); anonymous auth + Firestore sync verified on the emulator against the real project; rules 10/10 |
 | M5 Monetization | 🟡 code drafted | AdMob (test IDs + UMP) and Play Billing are written but not yet wired |
 | M6 Full QA + hand-back | 🟡 started | negative-test pass done (`docs/qa-negative-tests.md`); release folder still to do |
 
@@ -71,22 +71,20 @@ Test builds for the owner's phone: `release/test-builds/UrbanRunner-0.1.0-phone-
 | 1 | Test the latest phone APK; report lag or anything that feels wrong (screenshots help) | tuning |
 | 2 | Connect the phone by USB with USB debugging on, so `tools/device_perf.sh` can measure real FPS | performance tuning |
 | 3 | Final package ID (e.g. `com.yourstudio.urbanrunner`); it can't change after publishing | before Firebase/store |
-| 4 | Firebase project + `google-services.json` in `app/android/app/` | real cloud saves, analytics, Crashlytics |
+| 4 | ✅ Done 2026-10-10: Firebase project `urban-runner-5c944` (D34) | real cloud saves, analytics, Crashlytics |
 | 5 | AdMob account + real ad unit IDs | real ads (store) |
 | 6 | Play Console: the app, `remove_ads` and `starter_pack` products, internal testing track, license testers | real purchases (store) |
 | 7 | Privacy policy URL, Data safety form, content rating, target audience | store |
 | 8 | Final name + trademark check, store listing graphics | store |
 | 9 | Upload key + Play App Signing | store |
-| 10 | Create the Git remote (GitHub etc.) and share the URL, so the local commits can be pushed | backup |
+| 10 | ✅ Done: github.com/Abdullah-Ajmal147/urbaan-runner | backup |
 
 ### Claude's next work, in order
 1. **Performance on the real phone:** measure with `tools/device_perf.sh`, tune the quality ladder, reduce overdraw from big glow sprites on weaker phones, and add thermal awareness (Unity Adaptive Performance, Android provider). Try Vulkan as an experiment.
 2. **Lantern visual check:** capture a frame with the hunt lantern in view (`InGameShots`) and tune its size and beam.
-3. **M4 Firebase:**
-   - Add the Firebase packages (code drafted in `docs/drafts/firebase_services.dart`).
-   - Anonymous auth + Firestore sync through `CloudSync`, tested against the Emulator Suite (`demo-urban-runner`).
-   - Analytics, Crashlytics and Remote Config real sinks, active only when `google-services.json` exists.
-   - Sync the streak and hunt fields too.
+3. **M4 follow-ups:**
+   - Confirm in the console that Crashlytics shows up after the first real-phone session.
+   - Add the release SHA-1 once the upload key exists (owner task 9).
 4. **M5 Monetization:**
    - Add `google_mobile_ads` (Google test IDs, UMP consent, privacy options in Settings) and `in_app_purchase` (code drafted in `docs/drafts/admob_ads.dart` and `docs/drafts/play_store.dart`).
    - Emulator test: a test ad grants once; no ads in the tutorial or first session.
@@ -123,4 +121,8 @@ source tools/env.sh && UR_SUCCESS_MARKER="Building project for Flutter succeeded
 ## History
 - **M0 (2026-10-05):** toolchain, repo, Unity URP project, Flutter shell, and the bridge spike (7/7 checks on the x86-64 emulator).
 - **M1 (2026-10-05):** a deterministic C# simulation, the generator with fairness guarantees, the autoplay bot, the session protocol and the standalone host.
+- **M4 (2026-10-10):**
+  - Created the Firebase project and connected the app to it (D34): anonymous auth, Firestore cloud saves (including the streak and hunt), Analytics, Crashlytics and Remote Config.
+  - Without `google-services.json` the app still builds and runs local-only.
+  - On the emulator against the real project: the screen tour is clean, and `sync ok` appears after a run.
 - **M2/M3 (2026-10-05/06):** art, audio, haptics, the tutorial and the full Flutter shell. Then the in-game redesign (D27/D28), performance (D29/D31), negative testing, retention features (D32) and the loading cover (D33).

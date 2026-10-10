@@ -46,7 +46,9 @@ service cloud.firestore {
     // ---- games/urban_runner/players/{uid}: per-game progress ----
     function validPlayer(d) {
       return d.keys().hasOnly(['bestDistance', 'totalRuns', 'dailyBest', 'missions', 'updatedAt',
-                               'totalSparksEarned', 'missionCounter', 'tutorialDone'])
+                               'totalSparksEarned', 'missionCounter', 'tutorialDone',
+                               'streak', 'streakBest', 'lastStreakClaim',
+                               'huntDate', 'huntFound', 'huntStreak', 'huntLastComplete'])
         && d.keys().hasAll(['bestDistance', 'totalRuns'])
         && d.bestDistance is number && d.bestDistance >= 0 && d.bestDistance <= 10000000
         && isInt(d.totalRuns, 0, 10000000)
@@ -58,8 +60,17 @@ service cloud.firestore {
         && (!('updatedAt' in d) || d.updatedAt is timestamp)
         && (!('totalSparksEarned' in d) || isInt(d.totalSparksEarned, 0, 1000000000))
         && (!('missionCounter' in d) || isInt(d.missionCounter, 0, 100000000))
-        && (!('tutorialDone' in d) || d.tutorialDone is bool);
+        && (!('tutorialDone' in d) || d.tutorialDone is bool)
+        // Daily streak and Lantern Hunt (D32)
+        && (!('streak' in d) || isInt(d.streak, 0, 100000))
+        && (!('streakBest' in d) || isInt(d.streakBest, 0, 100000))
+        && (!('lastStreakClaim' in d) || isDayOrEmpty(d.lastStreakClaim))
+        && (!('huntDate' in d) || isDayOrEmpty(d.huntDate))
+        && (!('huntFound' in d) || isInt(d.huntFound, 0, 5))
+        && (!('huntStreak' in d) || isInt(d.huntStreak, 0, 100000))
+        && (!('huntLastComplete' in d) || isDayOrEmpty(d.huntLastComplete));
     }
+    function isDayOrEmpty(v) { return v is string && (v == '' || v.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')); }
 
     match /games/urban_runner/players/{uid} {
       allow read: if isOwner(uid);

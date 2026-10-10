@@ -178,3 +178,21 @@ Based on research into daily hunts and streaks (Subway Surfers' Word Hunt), firs
 On a real phone the owner saw Unity's "Made with Unity" splash with our spinner drawn on top of it. Since Unity 6, Personal licences may turn the splash off, so `PlayerSettings.SplashScreen.show = false` (with a regression test). The game screen now shows a full-screen Lantern City cover ("Heading to Lantern City…", the courier and a rotating gameplay tip) from the tap on Play until Unity's `session.started`. It then fades and is removed from the tree, so no invisible animation keeps running. Flow test: `loading: a branded cover…`.
 - **Follow-up (D31/D33):** the Hybrid Composition kick in `MainActivity` must only give Unity focus (`requestFocus` + `windowFocusChanged(true)`). Calling `pause()`/`resume()` while Unity is still starting blocked for 2 s and left the engine stuck, showing Unity's "Not enough storage space" dialog (KNOWN_ISSUES I5). It only happened with normal animation timing, which is why the earlier emulator check (animations off) passed. It is now verified with 4 cold starts, animations on and off. The loading cover shows the player's selected courier in full colour.
 
+
+### D34 · Firebase project `urban-runner-5c944`
+The owner created the project on 2026-10-10. Claude set it up in the console, and the owner accepted the Firebase and Analytics terms themselves.
+- **Plan:** Spark (free). Firestore backups would need Blaze, so they stay off.
+- **Analytics:** turned on.
+- **Android app:** `com.gamefactory.urbanrunner`.
+- **Sign-in:** Anonymous only. Auto clean-up stays off, because it would delete guest progress after 30 days.
+- **Firestore:** Standard edition, production mode, location `nam5` (US multi-region). The audience is worldwide, and the game is local-first with background sync, so server distance doesn't affect gameplay. The location is permanent.
+- **Rules:** `firebase/firestore.rules` was published from the console. Tests and emulators still use `demo-urban-runner` (default alias); the real project is the `prod` alias in `.firebaserc`.
+- **Config file:** `google-services.json` is in `app/android/app/` and is git-ignored.
+- **Not done yet:**
+  - Crashlytics turns on with the first report from the SDK.
+  - Debug and release SHA-1 fingerprints are only needed later, for Google or Play Games sign-in.
+- **M4 wiring:**
+  - `main.dart` calls `FirebaseSetup.init()`, which never throws.
+  - With the real project, the app uses Firebase Analytics, Firestore cloud saves and Remote Config. Without `google-services.json`, or if init fails, it uses the local-only debug services. This is the same code path the tests use.
+  - Gradle applies the google-services and Crashlytics plugins only when the file exists, so a fresh clone still builds.
+  - The player document now also syncs the streak and hunt fields: `streak`, `streakBest`, `lastStreakClaim`, `huntDate`, `huntFound`, `huntStreak`, `huntLastComplete`. The rules validate them, with a new rules test and a cross-device sync test.
