@@ -29,4 +29,8 @@ Free to play, with optional ads you choose to watch (for example to keep running
 **Graphics in this folder**
 - `icon-512.png`: app icon (512×512)
 - `feature-graphic-1024x500.png`: feature graphic
-- `phone-1…5-*.png`: phone screenshots (1080×2160)
+- `graphics/store-1…5.png`: marketing phone screenshots (1080×1920), upload these
+- `raw/`: the plain in-app screenshots they were made from
+- `privacy-policy.html`: also hosted at https://abdullah-ajmal147.github.io/urbaan-runner/privacy-policy.html once Pages is on
+
+Regenerate the screenshots with `python3 -I tools/store_graphics.py`.

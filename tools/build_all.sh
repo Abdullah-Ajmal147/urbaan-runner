@@ -12,6 +12,8 @@ cd "$ROOT"
 VERSION="$(grep -E '^version:' app/pubspec.yaml | sed -E 's/version: *([^+]+).*/\1/')"
 OUT="$ROOT/build/out"
 mkdir -p "$OUT" build/logs
+# Public privacy policy (GitHub Pages from /docs, D38); override with UR_PRIVACY_URL.
+PRIVACY_URL="${UR_PRIVACY_URL:-https://abdullah-ajmal147.github.io/urbaan-runner/privacy-policy.html}"
 TARGETS=("$@"); [ ${#TARGETS[@]} -eq 0 ] && TARGETS=(emulator phone aab standalone)
 want() { printf '%s\n' "${TARGETS[@]}" | grep -qx "$1"; }
 
@@ -25,7 +27,7 @@ export_unity() { # $1 = emulator|phone
 if want emulator; then
   export_unity emulator
   echo "== flutter apk (emulator)"
-  (cd app && flutter build apk --release --target-platform android-arm,android-arm64,android-x64) > build/logs/flutter_apk_emulator.log 2>&1
+  (cd app && flutter build apk --release --dart-define=PRIVACY_POLICY_URL="$PRIVACY_URL" --target-platform android-arm,android-arm64,android-x64) > build/logs/flutter_apk_emulator.log 2>&1
   cp app/build/app/outputs/flutter-apk/app-release.apk "$OUT/UrbanRunner-$VERSION-emulator.apk"
 fi
 
@@ -33,13 +35,13 @@ if want phone || want aab; then
   export_unity phone
   if want phone; then
     echo "== flutter apk (phone)"
-    (cd app && flutter build apk --release --target-platform android-arm,android-arm64) > build/logs/flutter_apk_phone.log 2>&1
+    (cd app && flutter build apk --release --dart-define=PRIVACY_POLICY_URL="$PRIVACY_URL" --target-platform android-arm,android-arm64) > build/logs/flutter_apk_phone.log 2>&1
     cp app/build/app/outputs/flutter-apk/app-release.apk "$OUT/UrbanRunner-$VERSION-phone.apk"
     python3 -I tools/lib/store_check.py "$OUT/UrbanRunner-$VERSION-phone.apk"
   fi
   if want aab; then
     echo "== flutter appbundle"
-    (cd app && flutter build appbundle --release --target-platform android-arm,android-arm64) > build/logs/flutter_aab.log 2>&1
+    (cd app && flutter build appbundle --release --dart-define=PRIVACY_POLICY_URL="$PRIVACY_URL" --target-platform android-arm,android-arm64) > build/logs/flutter_aab.log 2>&1
     cp app/build/app/outputs/bundle/release/app-release.aab "$OUT/UrbanRunner-$VERSION.aab"
     python3 -I tools/lib/store_check.py "$OUT/UrbanRunner-$VERSION.aab"
   fi

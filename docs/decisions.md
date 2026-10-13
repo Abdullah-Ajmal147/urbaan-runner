@@ -227,3 +227,8 @@ The owner created the project on 2026-10-10. Claude set it up in the console, an
 - **Bug: about 10 s on "One moment…" after onboarding.** Onboarding awaited Google's UMP consent check and then `MobileAds.initialize()`, and on a slow network the consent check alone took around 10 s.
   - **Fix:** onboarding waits at most 3 s for consent, then starts `ads.init()` without awaiting it. `init()` still awaits consent before any ad request, so §7.4 holds. If the check is slower than 3 s, a required consent form can appear after onboarding; the first session has no ads anyway.
   - **Regression:** flow test "a hanging consent check holds onboarding for at most 3 s". It fails without the fix.
+
+### D38 · Marketing screenshots and privacy policy hosting (2026-10-13)
+- **Store screenshots:** `tools/store_graphics.py` renders five 1080×1920 marketing images (headline, accent glow, phone frame, bottom fade) from the plain screenshots in `release/store-listing/raw/`. Output is `release/store-listing/graphics/`. Reusable for game #2.
+- **Privacy policy:** `docs/privacy-policy.html`, served by GitHub Pages from `main` `/docs` at `https://abdullah-ajmal147.github.io/urbaan-runner/privacy-policy.html`. Contact is the repo's Issues page until the owner chooses a public email. `build_all` passes that URL to release builds as `PRIVACY_POLICY_URL` so the Settings row opens it.
+- **Push blocked:** stored git credentials belong to a GitHub account (`BytrixUAE`) with no write access to `Abdullah-Ajmal147/urbaan-runner` (403). Needs the repo owner to sign in or add that account as a collaborator.
