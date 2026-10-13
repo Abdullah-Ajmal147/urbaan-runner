@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:urban_runner/core/storage/local_store.dart';
@@ -64,6 +66,22 @@ void main() {
     await claimGiftIfOffered(tester);
     return h;
   }
+
+  testWidgets('regression: a hanging consent check holds onboarding for at most 3 s (D37)', (tester) async {
+    final h = TestHarness();
+    h.ads.consentResult = Completer<void>().future; // never answers, like a stalled UMP request
+    await boot(tester, h);
+    for (var i = 0; i < 2; i++) {
+      await tester.tap(find.byKey(const Key('onboarding_next')));
+      await tester.pumpAndSettle();
+    }
+    await tester.tap(find.byKey(const Key('onboarding_next')));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.text('One moment…'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('onboarding_next')), findsNothing, reason: 'onboarding finished despite the stalled consent check');
+  });
 
   testWidgets('fresh install → onboarding → first run is the tutorial → results → home', (tester) async {
     final h = TestHarness();

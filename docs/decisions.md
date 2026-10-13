@@ -220,3 +220,10 @@ The owner created the project on 2026-10-10. Claude set it up in the console, an
   - **Fix:** the app module derives `ndk.abiFilters` from Flutter's `target-platform`, so phone/AAB builds are ARM-only and the emulator build keeps x86_64. No change to `unityLibrary`.
   - **Regression:** `tools/lib/store_check.py` (no x86/x86_64, arm64 LOAD segments ≥ 16 KB) runs after every phone/AAB build in `build_all`; `tools/tests/test_store_check.sh` covers it in `test_all`.
 - The internal-testing build still uses Google test ad IDs until the owner's AdMob account exists (owner task 5).
+
+### D37 · App icon, store graphics, onboarding consent wait (2026-10-13)
+- **Icon:** an original Lantern City icon (amber paper lantern leaning forward with neon speed trails over a night skyline), drawn as SVG in `tools/icon_layers.py` and rendered with headless Chrome. It ships as an Android adaptive icon (background, foreground and monochrome layers) with legacy PNGs for every density.
+- **Store graphics** in `release/store-listing/`: a 512 icon, a 1024×500 feature graphic, and five phone screenshots from the clean screen tour, cropped to 1080×2160 because Play allows at most 2:1. Also `LISTING.md` and a privacy policy draft (`docs/privacy-policy.html`, which needs the owner's contact email and hosting).
+- **Bug: about 10 s on "One moment…" after onboarding.** Onboarding awaited Google's UMP consent check and then `MobileAds.initialize()`, and on a slow network the consent check alone took around 10 s.
+  - **Fix:** onboarding waits at most 3 s for consent, then starts `ads.init()` without awaiting it. `init()` still awaits consent before any ad request, so §7.4 holds. If the check is slower than 3 s, a required consent form can appear after onboarding; the first session has no ads anyway.
+  - **Regression:** flow test "a hanging consent check holds onboarding for at most 3 s". It fails without the fix.

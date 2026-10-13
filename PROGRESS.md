@@ -59,7 +59,7 @@ Test builds for the owner's phone: `release/test-builds/UrbanRunner-0.1.0-phone-
   - `tools/ingame_shots.sh` (design frames without an emulator)
   - `tools/screen_tour.sh`
   - `tools/device_perf.sh` (real-phone FPS)
-- Bridge contract v3 (`docs/bridge-contract.md`); decisions D1–D36 (`docs/decisions.md`).
+- Bridge contract v3 (`docs/bridge-contract.md`); decisions D1–D37 (`docs/decisions.md`).
 
 ---
 
@@ -75,7 +75,7 @@ Test builds for the owner's phone: `release/test-builds/UrbanRunner-0.1.0-phone-
 | 5 | AdMob account + real ad unit IDs | real ads (store) |
 | 6 | Play Console: the app, `remove_ads` and `starter_pack` products, internal testing track, license testers | real purchases (store) |
 | 7 | Privacy policy URL, Data safety form, content rating, target audience | store |
-| 8 | Final name + trademark check, store listing graphics | store |
+| 8 | Final name + trademark check; store graphics drafted in `release/store-listing/` (D37) | store |
 | 9 | ✅ Upload key created 2026-10-13 at `~/cred/urban-runner/` (owner must back it up); Play App Signing on first upload (D36) | store |
 | 10 | ✅ Done: github.com/Abdullah-Ajmal147/urbaan-runner | backup |
 
@@ -134,3 +134,4 @@ source tools/env.sh && UR_SUCCESS_MARKER="Building project for Flutter succeeded
   - On the emulator against the real project: the screen tour is clean, and `sync ok` appears after a run.
 - **M2/M3 (2026-10-05/06):** art, audio, haptics, the tutorial and the full Flutter shell. Then the in-game redesign (D27/D28), performance (D29/D31), negative testing, retention features (D32) and the loading cover (D33).
 - **Store prep (2026-10-13):** upload key created outside the repo; signed ARM-only AAB `release/UrbanRunner-0.1.0.aab` (108 MB); fixed x86_64 leaking into store builds, with a gate and regression test (D36).
+- **Icon + store assets (2026-10-13):** adaptive app icon, feature graphic, 5 store screenshots, listing text, privacy policy draft; fixed a ~10 s onboarding wait on slow consent checks (D37). Play Console steps are the owner's (the browser automation was blocked by the safety system).

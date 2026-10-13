@@ -17,12 +17,14 @@ class DebugAdsService implements AdsService {
   int interstitialsShown = 0;
   /// False simulates "no interstitial loaded" (no fill, offline).
   bool interstitialReady = true;
+  /// Set to a never-completing future to simulate Google's consent check hanging on a slow network.
+  Future<void>? consentResult;
 
   @override
-  Future<void> init() async {}
+  Future<void> init() async => gatherConsent();
 
   @override
-  Future<void> gatherConsent() async {}
+  Future<void> gatherConsent() => consentResult ?? Future<void>.value();
 
   @override
   bool get privacyOptionsRequired => false;

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:urban_runner/core/widgets/phosphor.dart';
 import 'package:provider/provider.dart';
@@ -20,6 +22,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final _pages = PageController();
   int _page = 0;
   bool _finishing = false;
+  static const _consentWait = Duration(seconds: 3);
 
   static const _cards = [
     _Card(
@@ -56,9 +59,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
     setState(() => _finishing = true);
     final s = context.read<AppServices>();
-    // Google's consent flow runs before any ad is requested (HANDOVER §7.4).
-    await s.ads.gatherConsent();
-    await s.ads.init();
+    // Google's consent flow runs before any ad is requested (HANDOVER §7.4); init() waits for it too.
+    // A slow consent check must not keep a new player on "One moment…" (D37), so cap the wait here.
+    await s.ads.gatherConsent().timeout(_consentWait, onTimeout: () {});
+    unawaited(s.ads.init());
     if (!mounted) return;
     await context.read<GameState>().completeOnboarding();
     widget.onDone();
