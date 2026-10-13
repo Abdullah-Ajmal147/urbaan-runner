@@ -212,3 +212,11 @@ The owner created the project on 2026-10-10. Claude set it up in the console, an
   - **Ad-revive in the first session.** Unity's revive card is "Watch a short ad", and it was offered in the tutorial run and the rest of the first session. §7.4 allows no ads there.
     - **Fix:** `session.start` now sends `revive_enabled: false` for the tutorial and while `appSessions <= 1`, with no Unity change.
     - **Regressions:** a unit test, plus a flow test in which a crash during the first session asks for no ad. The fake Unity respects the switch like the real one.
+
+### D36 · Upload key, store bundle and Play internal testing (2026-10-13)
+- **Owner decisions:** keep `com.gamefactory.urbanrunner`; go to Play **internal testing** first; Claude creates the upload key.
+- **Upload key:** RSA 4096 PKCS12, alias `upload`, at `~/cred/urban-runner/upload-keystore.jks` with `key.properties` beside it (mode 600, outside the repo). Gradle reads it (override: `UR_KEY_PROPERTIES`); without it release falls back to debug signing. Upload cert SHA-1 `B4:71:F7:25:F0:21:EE:43:E6:CB:51:FB:D1:7B:7F:6D:E5:56:BE:55`.
+- **Bug: x86_64 in the store bundle.** Unity's export always packs x86_64, and `--target-platform` only filters Flutter's own libs, so the first AAB shipped x86_64.
+  - **Fix:** the app module derives `ndk.abiFilters` from Flutter's `target-platform`, so phone/AAB builds are ARM-only and the emulator build keeps x86_64. No change to `unityLibrary`.
+  - **Regression:** `tools/lib/store_check.py` (no x86/x86_64, arm64 LOAD segments ≥ 16 KB) runs after every phone/AAB build in `build_all`; `tools/tests/test_store_check.sh` covers it in `test_all`.
+- The internal-testing build still uses Google test ad IDs until the owner's AdMob account exists (owner task 5).

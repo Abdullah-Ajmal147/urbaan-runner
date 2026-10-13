@@ -59,7 +59,7 @@ Test builds for the owner's phone: `release/test-builds/UrbanRunner-0.1.0-phone-
   - `tools/ingame_shots.sh` (design frames without an emulator)
   - `tools/screen_tour.sh`
   - `tools/device_perf.sh` (real-phone FPS)
-- Bridge contract v3 (`docs/bridge-contract.md`); decisions D1–D33 (`docs/decisions.md`).
+- Bridge contract v3 (`docs/bridge-contract.md`); decisions D1–D36 (`docs/decisions.md`).
 
 ---
 
@@ -70,13 +70,13 @@ Test builds for the owner's phone: `release/test-builds/UrbanRunner-0.1.0-phone-
 | --- | --- | --- |
 | 1 | Test the latest phone APK; report lag or anything that feels wrong (screenshots help) | tuning |
 | 2 | Connect the phone by USB with USB debugging on, so `tools/device_perf.sh` can measure real FPS | performance tuning |
-| 3 | Final package ID (e.g. `com.yourstudio.urbanrunner`); it can't change after publishing | before Firebase/store |
+| 3 | ✅ Done 2026-10-13: keep `com.gamefactory.urbanrunner` (D36) | before Firebase/store |
 | 4 | ✅ Done 2026-10-10: Firebase project `urban-runner-5c944` (D34) | real cloud saves, analytics, Crashlytics |
 | 5 | AdMob account + real ad unit IDs | real ads (store) |
 | 6 | Play Console: the app, `remove_ads` and `starter_pack` products, internal testing track, license testers | real purchases (store) |
 | 7 | Privacy policy URL, Data safety form, content rating, target audience | store |
 | 8 | Final name + trademark check, store listing graphics | store |
-| 9 | Upload key + Play App Signing | store |
+| 9 | ✅ Upload key created 2026-10-13 at `~/cred/urban-runner/` (owner must back it up); Play App Signing on first upload (D36) | store |
 | 10 | ✅ Done: github.com/Abdullah-Ajmal147/urbaan-runner | backup |
 
 ### Claude's next work, in order
@@ -95,7 +95,7 @@ Test builds for the owner's phone: `release/test-builds/UrbanRunner-0.1.0-phone-
    - More couriers and trails
 6. **M6 QA + hand-back:**
    - Rerun the full HANDOVER §10.3 checklist on the final build, plus a low-spec AVD (2 GB, 720p).
-   - Release AAB, the 16 KB alignment check, and a phone APK without x86-64.
+   - ✅ Release AAB (upload-signed, ARM-only, 16 KB checked by `store_check.py`); still to do: phone APK rebuild via `build_all`.
    - The `release/` folder: HOW_TO_RUN, TEST_REPORT (with evidence for §10.3 and §11.1), KNOWN_ISSUES, OWNER_TASKS, screenshots, logs, milestones.
 
 ### Known issues (details in KNOWN_ISSUES.md)
@@ -133,3 +133,4 @@ source tools/env.sh && UR_SUCCESS_MARKER="Building project for Flutter succeeded
   - Without `google-services.json` the app still builds and runs local-only.
   - On the emulator against the real project: the screen tour is clean, and `sync ok` appears after a run.
 - **M2/M3 (2026-10-05/06):** art, audio, haptics, the tutorial and the full Flutter shell. Then the in-game redesign (D27/D28), performance (D29/D31), negative testing, retention features (D32) and the loading cover (D33).
+- **Store prep (2026-10-13):** upload key created outside the repo; signed ARM-only AAB `release/UrbanRunner-0.1.0.aab` (108 MB); fixed x86_64 leaking into store builds, with a gate and regression test (D36).

@@ -35,11 +35,13 @@ if want phone || want aab; then
     echo "== flutter apk (phone)"
     (cd app && flutter build apk --release --target-platform android-arm,android-arm64) > build/logs/flutter_apk_phone.log 2>&1
     cp app/build/app/outputs/flutter-apk/app-release.apk "$OUT/UrbanRunner-$VERSION-phone.apk"
+    python3 -I tools/lib/store_check.py "$OUT/UrbanRunner-$VERSION-phone.apk"
   fi
   if want aab; then
     echo "== flutter appbundle"
     (cd app && flutter build appbundle --release --target-platform android-arm,android-arm64) > build/logs/flutter_aab.log 2>&1
     cp app/build/app/outputs/bundle/release/app-release.aab "$OUT/UrbanRunner-$VERSION.aab"
+    python3 -I tools/lib/store_check.py "$OUT/UrbanRunner-$VERSION.aab"
   fi
 fi
 

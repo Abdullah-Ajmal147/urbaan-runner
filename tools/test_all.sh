@@ -27,7 +27,7 @@ unity_xml_ok() {
 }
 
 # Tooling regression tests (fast; no Unity needed).
-bash tools/tests/test_ur_unity.sh > build/logs/tools_test.log 2>&1 && record "tools" PASS || record "tools" FAIL
+{ bash tools/tests/test_ur_unity.sh && bash tools/tests/test_store_check.sh; } > build/logs/tools_test.log 2>&1 && record "tools" PASS || record "tools" FAIL
 
 if [ "$SKIP_UNITY" = 0 ]; then
   if [ -z "$UNITY" ]; then
